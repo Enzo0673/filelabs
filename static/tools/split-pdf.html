@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diviser PDF — CompressIt</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
+      <a href="/" class="btn-back">← Tous les outils</a>
+    </header>
+    <div class="tool-hero"><span class="tool-hero-icon">✂️</span><div><h1 class="tool-hero-title">Diviser PDF</h1><p class="tool-hero-sub">Extraire des pages ou découper un PDF</p></div></div>
+    <main class="main">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <p class="drop-title">Glissez votre PDF ici</p><p class="drop-sub">ou</p>
+        <label class="btn-browse" for="fileInput">Parcourir</label>
+        <input type="file" id="fileInput" hidden accept=".pdf" />
+        <p class="drop-formats">PDF uniquement</p>
+      </div>
+      <div class="config-panel" id="configPanel" hidden>
+        <div class="file-preview" id="filePreview"></div>
+        <div class="form-group">
+          <p class="section-label">Pages à extraire</p>
+          <input type="text" id="ranges" placeholder="Ex: 1-3, 5, 7-9 (vide = une page par fichier)" class="text-input" />
+          <p class="hint-text">Laissez vide pour diviser en pages individuelles</p>
+        </div>
+        <button class="btn-compress" id="btnAction">✂️ Diviser</button>
+      </div>
+      <div class="progress-panel" id="progressPanel" hidden><div class="progress-spinner"></div><p class="progress-label">Division en cours…</p><div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:60%"></div></div></div>
+      <div class="result-panel" id="resultPanel" hidden>
+        <div class="result-badge" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✓ Divisé</div>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="result-actions">
+          <a class="btn-download" id="btnDownload" href="#"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3V11M9 11L5 7M9 11L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Télécharger (ZIP)</a>
+          <button class="btn-reset" id="btnReset">Nouveau</button>
+        </div>
+      </div>
+      <div class="error-panel" id="errorPanel" hidden><div class="error-icon">!</div><p class="error-msg" id="errorMsg"></p><button class="btn-reset" id="btnErrorReset">Réessayer</button></div>
+    </main>
+    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+  </div>
+  <script>
+    let currentFile = null;
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const configPanel = document.getElementById('configPanel');
+    const progressPanel = document.getElementById('progressPanel');
+    const resultPanel = document.getElementById('resultPanel');
+    const errorPanel = document.getElementById('errorPanel');
+    const ALL = [dropZone, configPanel, progressPanel, resultPanel, errorPanel];
+    function showPanel(p) { ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
+    function formatBytes(b) { return b < 1024*1024 ? (b/1024).toFixed(1)+' Ko' : (b/(1024*1024)).toFixed(2)+' Mo'; }
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
+    dropZone.addEventListener('click', e => { if (!e.target.closest('label')) fileInput.click(); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) load(fileInput.files[0]); });
+    function load(f) {
+      currentFile = f;
+      document.getElementById('filePreview').innerHTML = `<span class="file-icon">📄</span><div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${formatBytes(f.size)}</div></div>`;
+      showPanel(configPanel);
+    }
+    document.getElementById('btnAction').addEventListener('click', async () => {
+      if (!currentFile) return;
+      showPanel(progressPanel);
+      const fd = new FormData();
+      fd.append('file', currentFile);
+      const ranges = document.getElementById('ranges').value;
+      if (ranges) fd.append('ranges', ranges);
+      try {
+        const res = await fetch('/pdf/split', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+        document.getElementById('btnDownload').download = data.output_filename;
+        document.getElementById('resultStats').innerHTML = `<div class="stat-item"><span class="stat-label">Résultat</span><span class="stat-value">ZIP téléchargeable</span></div>`;
+        showPanel(resultPanel);
+      } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(errorPanel); }
+    });
+    function reset() { currentFile = null; showPanel(dropZone); }
+    document.getElementById('btnReset').addEventListener('click', reset);
+    document.getElementById('btnErrorReset').addEventListener('click', reset);
+    showPanel(dropZone);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
+  </script>
+</body>
+</html>

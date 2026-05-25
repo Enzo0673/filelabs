@@ -440,6 +440,79 @@ body.home-body {
 .tool-name { font-size: .9rem; font-weight: 700; }
 .tool-desc { font-size: .75rem; color: var(--text-muted); line-height: 1.4; }
 
+/* ---- Multi-file drop zone ---- */
+.multi-drop-zone {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 2px dashed var(--border);
+  transition: border-color .2s, background .2s;
+  cursor: pointer;
+  text-align: center;
+}
+.multi-drop-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
+
+/* ---- File list panel ---- */
+.file-list-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.file-count { color: var(--text-muted); font-weight: 400; }
+.file-list { display: flex; flex-direction: column; gap: 8px; }
+.file-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.file-list-icon { font-size: 1.2rem; }
+.file-list-name { flex: 1; font-size: .85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-list-size { font-size: .75rem; color: var(--text-muted); }
+.file-list-remove { border: none; background: none; color: var(--text-muted); cursor: pointer; font-size: .9rem; padding: 2px 6px; border-radius: 4px; transition: color .15s; }
+.file-list-remove:hover { color: var(--error); }
+.btn-add-more {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+}
+.btn-add-more:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ---- Form elements ---- */
+.form-group { margin-bottom: 16px; }
+.text-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .9rem;
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color .15s;
+  margin-top: 6px;
+}
+.text-input:focus { outline: none; border-color: var(--primary); }
+.hint-text { font-size: .75rem; color: var(--text-muted); margin-top: 4px; }
+
 /* ---- Home Footer ---- */
 .home-footer {
   text-align: center;

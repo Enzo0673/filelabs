@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JPG vers PDF — CompressIt</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
+      <a href="/" class="btn-back">← Tous les outils</a>
+    </header>
+    <div class="tool-hero"><span class="tool-hero-icon">📄</span><div><h1 class="tool-hero-title">JPG vers PDF</h1><p class="tool-hero-sub">Assembler des images en un seul PDF</p></div></div>
+    <main class="main">
+      <div class="multi-drop-zone" id="dropZone">
+        <div class="drop-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <p class="drop-title">Glissez vos images ici</p><p class="drop-sub">ou</p>
+        <label class="btn-browse" for="fileInput">Parcourir</label>
+        <input type="file" id="fileInput" hidden accept="image/*" multiple />
+        <p class="drop-formats">JPG · PNG · WebP · BMP</p>
+      </div>
+      <div class="file-list-panel" id="fileListPanel" hidden>
+        <p class="section-label">Images à assembler <span class="file-count" id="fileCount"></span></p>
+        <div class="file-list" id="fileList"></div>
+        <label class="btn-add-more" for="fileInputMore">+ Ajouter d'autres images</label>
+        <input type="file" id="fileInputMore" hidden accept="image/*" multiple />
+        <button class="btn-compress" id="btnAction">📄 Créer le PDF</button>
+      </div>
+      <div class="progress-panel" id="progressPanel" hidden><div class="progress-spinner"></div><p class="progress-label">Création en cours…</p><div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div></div>
+      <div class="result-panel" id="resultPanel" hidden>
+        <div class="result-badge" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✓ PDF créé</div>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="result-actions">
+          <a class="btn-download" id="btnDownload" href="#"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3V11M9 11L5 7M9 11L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Télécharger</a>
+          <button class="btn-reset" id="btnReset">Nouveau</button>
+        </div>
+      </div>
+      <div class="error-panel" id="errorPanel" hidden><div class="error-icon">!</div><p class="error-msg" id="errorMsg"></p><button class="btn-reset" id="btnErrorReset">Réessayer</button></div>
+    </main>
+    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+  </div>
+  <script>
+    let files = [];
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInputMore = document.getElementById('fileInputMore');
+    const fileListPanel = document.getElementById('fileListPanel');
+    const fileList = document.getElementById('fileList');
+    const fileCount = document.getElementById('fileCount');
+    const ALL = [dropZone, fileListPanel, document.getElementById('progressPanel'), document.getElementById('resultPanel'), document.getElementById('errorPanel')];
+    function showPanel(p) { ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
+    function formatBytes(b) { return b < 1024*1024 ? (b/1024).toFixed(1)+' Ko' : (b/(1024*1024)).toFixed(2)+' Mo'; }
+    function renderFileList() {
+      fileCount.textContent = `(${files.length})`;
+      fileList.innerHTML = files.map((f, i) => `<div class="file-list-item"><span class="file-list-icon">🖼️</span><span class="file-list-name">${f.name}</span><span class="file-list-size">${formatBytes(f.size)}</span><button class="file-list-remove" onclick="removeFile(${i})">✕</button></div>`).join('');
+      if (files.length >= 1) showPanel(fileListPanel);
+    }
+    function addFiles(newFiles) { files = [...files, ...Array.from(newFiles)]; renderFileList(); }
+    function removeFile(i) { files.splice(i, 1); if (files.length === 0) showPanel(dropZone); else renderFileList(); }
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles(e.dataTransfer.files); });
+    dropZone.addEventListener('click', e => { if (!e.target.closest('label')) fileInput.click(); });
+    fileInput.addEventListener('change', () => addFiles(fileInput.files));
+    fileInputMore.addEventListener('change', () => addFiles(fileInputMore.files));
+    document.getElementById('btnAction').addEventListener('click', async () => {
+      if (files.length < 1) return;
+      showPanel(ALL[2]);
+      const fd = new FormData();
+      files.forEach(f => fd.append('files', f));
+      try {
+        const res = await fetch('/pdf/from-jpg', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+        document.getElementById('btnDownload').download = data.output_filename;
+        document.getElementById('resultStats').innerHTML = `<div class="stat-item"><span class="stat-label">Images assemblées</span><span class="stat-value">${files.length}</span></div>`;
+        showPanel(ALL[3]);
+      } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(ALL[4]); }
+    });
+    function reset() { files = []; showPanel(dropZone); }
+    document.getElementById('btnReset').addEventListener('click', reset);
+    document.getElementById('btnErrorReset').addEventListener('click', reset);
+    showPanel(dropZone);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
+  </script>
+</body>
+</html>
