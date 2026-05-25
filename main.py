@@ -82,8 +82,20 @@ def detect_type(filename: str, mime: str) -> str:
             return cat
     return "archive"  # fallback générique
 
-@app.get("/static/service-worker.js")
+@app.get("/manifest.json")
+async def manifest():
+    path = BASE_DIR / "static" / "manifest.json"
+    return FileResponse(path=path, media_type="application/manifest+json")
+
+
+@app.get("/service-worker.js")
 async def service_worker():
+    sw_path = BASE_DIR / "static" / "service-worker.js"
+    return FileResponse(path=sw_path, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
+
+
+@app.get("/static/service-worker.js")
+async def service_worker_static():
     sw_path = BASE_DIR / "static" / "service-worker.js"
     return FileResponse(path=sw_path, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
 
