@@ -119,6 +119,27 @@ def jpg_to_pdf(input_paths: List[Path], output_path: Path) -> Path:
     return output_path
 
 
+# ---- Rotation PDF par map individuelle ----
+def rotate_pdf_map(input_path: Path, output_path: Path, rotation_map: str) -> Path:
+    """rotation_map = '1:90,3:180,5:270' (pages 1-indexées)"""
+    output_path = output_path.with_suffix(".pdf")
+    mapping = {}
+    for entry in rotation_map.split(','):
+        entry = entry.strip()
+        if ':' in entry:
+            pg, angle = entry.split(':', 1)
+            mapping[int(pg) - 1] = int(angle)
+
+    with pikepdf.open(input_path) as pdf:
+        for idx, angle in mapping.items():
+            if 0 <= idx < len(pdf.pages):
+                page = pdf.pages[idx]
+                current = int(page.get("/Rotate", 0))
+                page["/Rotate"] = (current + angle) % 360
+        pdf.save(output_path, compress_streams=True)
+    return output_path
+
+
 # ---- Rotation PDF ----
 def rotate_pdf(input_path: Path, output_path: Path, angle: int = 90, pages: str = "all") -> Path:
     output_path = output_path.with_suffix(".pdf")

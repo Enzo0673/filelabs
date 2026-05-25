@@ -6,93 +6,324 @@
   <link rel="stylesheet" href="/static/style.css" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <style>
+    .pages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .page-thumb {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-2);
+      transition: all .15s;
+      user-select: none;
+    }
+    .page-thumb:hover { border-color: var(--primary); }
+    .page-thumb.selected { border-color: var(--primary); background: var(--primary-light); }
+    .page-thumb canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      box-shadow: var(--shadow);
+      transition: transform .3s ease;
+    }
+    .page-num {
+      font-size: .75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .rotation-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .rotation-controls span {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .btn-rotate-quick {
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-rotate-quick:hover { border-color: var(--primary); color: var(--primary); }
+    .select-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .btn-select-all, .btn-deselect-all {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all .15s;
+    }
+    .btn-select-all:hover, .btn-deselect-all:hover { border-color: var(--primary); color: var(--primary); }
+    .selected-info {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+  </style>
 </head>
 <body>
-  <div class="app">
+  <div class="app" style="max-width:720px">
     <header class="header">
       <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
       <a href="/" class="btn-back">← Tous les outils</a>
     </header>
-    <div class="tool-hero"><span class="tool-hero-icon">🔄</span><div><h1 class="tool-hero-title">Rotation PDF</h1><p class="tool-hero-sub">Pivoter les pages d'un PDF</p></div></div>
+
+    <div class="tool-hero"><span class="tool-hero-icon">🔄</span><div><h1 class="tool-hero-title">Rotation PDF</h1><p class="tool-hero-sub">Sélectionnez les pages et pivotez-les avant de valider</p></div></div>
+
     <main class="main">
+      <!-- Drop zone -->
       <div class="drop-zone" id="dropZone">
         <div class="drop-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/></svg></div>
         <p class="drop-title">Glissez votre PDF ici</p><p class="drop-sub">ou</p>
         <label class="btn-browse" for="fileInput">Parcourir</label>
         <input type="file" id="fileInput" hidden accept=".pdf" />
       </div>
-      <div class="config-panel" id="configPanel" hidden>
-        <div class="file-preview" id="filePreview"></div>
-        <div class="form-group">
-          <p class="section-label">Angle de rotation</p>
-          <div class="level-buttons">
-            <button class="level-btn active" data-angle="90"><span class="level-icon">↻</span><span class="level-name">90°</span><span class="level-desc">Droite</span></button>
-            <button class="level-btn" data-angle="180"><span class="level-icon">↕</span><span class="level-name">180°</span><span class="level-desc">Retourner</span></button>
-            <button class="level-btn" data-angle="270"><span class="level-icon">↺</span><span class="level-name">270°</span><span class="level-desc">Gauche</span></button>
-          </div>
-        </div>
-        <div class="form-group">
-          <p class="section-label">Pages concernées</p>
-          <input type="text" id="pages" placeholder="Ex: 1-3, 5 (vide = toutes)" class="text-input" />
-        </div>
-        <button class="btn-compress" id="btnAction">🔄 Appliquer la rotation</button>
+
+      <!-- Loading -->
+      <div id="loadingPanel" hidden style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:32px;text-align:center">
+        <div class="progress-spinner" style="margin:0 auto 16px"></div>
+        <p style="color:var(--text-muted);font-weight:600">Chargement du PDF…</p>
       </div>
-      <div class="progress-panel" id="progressPanel" hidden><div class="progress-spinner"></div><p class="progress-label">Rotation en cours…</p><div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:60%"></div></div></div>
+
+      <!-- Prévisualisation + contrôles -->
+      <div id="previewPanel" hidden style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px;display:flex;flex-direction:column;gap:16px">
+
+        <div class="file-preview" id="filePreview"></div>
+
+        <!-- Contrôles de sélection -->
+        <div class="select-controls">
+          <button class="btn-select-all" id="btnSelectAll">Tout sélectionner</button>
+          <button class="btn-deselect-all" id="btnDeselectAll">Tout désélectionner</button>
+          <span class="selected-info" id="selectedInfo">0 page sélectionnée</span>
+        </div>
+
+        <!-- Grille de pages -->
+        <div class="pages-grid" id="pagesGrid"></div>
+
+        <!-- Contrôles de rotation -->
+        <div class="rotation-controls">
+          <span>Pivoter la sélection :</span>
+          <button class="btn-rotate-quick" data-angle="90">↻ 90°</button>
+          <button class="btn-rotate-quick" data-angle="180">↕ 180°</button>
+          <button class="btn-rotate-quick" data-angle="270">↺ 270°</button>
+        </div>
+
+        <button class="btn-compress" id="btnAction" disabled style="opacity:.5">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3V13M10 13L6 9M10 13L14 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="15" width="14" height="2" rx="1" fill="currentColor"/></svg>
+          Appliquer et télécharger
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-panel" id="progressPanel" hidden>
+        <div class="progress-spinner"></div>
+        <p class="progress-label">Application de la rotation…</p>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:60%"></div></div>
+      </div>
+
+      <!-- Résultat -->
       <div class="result-panel" id="resultPanel" hidden>
-        <div class="result-badge" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✓ Pivoté</div>
+        <div class="result-badge" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✓ Rotation appliquée</div>
         <div class="result-actions">
           <a class="btn-download" id="btnDownload" href="#"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3V11M9 11L5 7M9 11L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Télécharger</a>
-          <button class="btn-reset" id="btnReset">Nouveau</button>
+          <button class="btn-reset" id="btnReset">Nouveau fichier</button>
         </div>
       </div>
-      <div class="error-panel" id="errorPanel" hidden><div class="error-icon">!</div><p class="error-msg" id="errorMsg"></p><button class="btn-reset" id="btnErrorReset">Réessayer</button></div>
+
+      <div class="error-panel" id="errorPanel" hidden>
+        <div class="error-icon">!</div>
+        <p class="error-msg" id="errorMsg"></p>
+        <button class="btn-reset" id="btnErrorReset">Réessayer</button>
+      </div>
     </main>
+
     <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
   </div>
+
+  <!-- PDF.js depuis CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    let currentFile = null, selectedAngle = 90;
-    const ALL = ['dropZone','configPanel','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
-    function showPanel(p) { ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let currentFile = null;
+    // pageRotations[i] = rotation cumulée de la page i (0, 90, 180, 270)
+    let pageRotations = [];
+    let totalPages = 0;
+
+    const dropZone      = document.getElementById('dropZone');
+    const fileInput     = document.getElementById('fileInput');
+    const loadingPanel  = document.getElementById('loadingPanel');
+    const previewPanel  = document.getElementById('previewPanel');
+    const progressPanel = document.getElementById('progressPanel');
+    const resultPanel   = document.getElementById('resultPanel');
+    const errorPanel    = document.getElementById('errorPanel');
+    const pagesGrid     = document.getElementById('pagesGrid');
+    const btnAction     = document.getElementById('btnAction');
+    const selectedInfo  = document.getElementById('selectedInfo');
+    const ALL = [dropZone, loadingPanel, previewPanel, progressPanel, resultPanel, errorPanel];
+
+    function showPanel(p) {
+      ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; });
+    }
     function formatBytes(b) { return b < 1024*1024 ? (b/1024).toFixed(1)+' Ko' : (b/(1024*1024)).toFixed(2)+' Mo'; }
-    const dropZone = ALL[0], fileInput = document.getElementById('fileInput');
+
+    // ---- Drop & load ----
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
     dropZone.addEventListener('click', e => { if (!e.target.closest('label')) fileInput.click(); });
-    fileInput.addEventListener('change', () => { if (fileInput.files[0]) load(fileInput.files[0]); });
-    function load(f) {
-      currentFile = f;
-      document.getElementById('filePreview').innerHTML = `<span class="file-icon">📄</span><div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${formatBytes(f.size)}</div></div>`;
-      showPanel(ALL[1]);
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+
+    async function loadFile(file) {
+      currentFile = file;
+      document.getElementById('filePreview').innerHTML = `<span class="file-icon">📄</span><div class="file-info"><div class="file-name">${file.name}</div><div class="file-size">${formatBytes(file.size)}</div></div>`;
+      showPanel(loadingPanel);
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      totalPages = pdfDoc.numPages;
+      pageRotations = new Array(totalPages).fill(0);
+
+      pagesGrid.innerHTML = '';
+      for (let i = 1; i <= totalPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale: 0.3 });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+        const thumb = document.createElement('div');
+        thumb.className = 'page-thumb';
+        thumb.dataset.index = i - 1;
+        thumb.innerHTML = `<span class="page-num">Page ${i}</span>`;
+        thumb.insertBefore(canvas, thumb.firstChild);
+        thumb.addEventListener('click', () => togglePage(thumb, i - 1));
+        pagesGrid.appendChild(thumb);
+      }
+
+      updateSelectedInfo();
+      showPanel(previewPanel);
     }
+
+    // ---- Sélection ----
+    function togglePage(thumb, idx) {
+      thumb.classList.toggle('selected');
+      updateSelectedInfo();
+    }
+
+    function getSelectedIndices() {
+      return [...pagesGrid.querySelectorAll('.page-thumb.selected')].map(t => parseInt(t.dataset.index));
+    }
+
+    function updateSelectedInfo() {
+      const n = getSelectedIndices().length;
+      selectedInfo.textContent = n === 0 ? 'Aucune page sélectionnée' : `${n} page${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''}`;
+      btnAction.disabled = n === 0;
+      btnAction.style.opacity = n === 0 ? '.5' : '1';
+    }
+
+    document.getElementById('btnSelectAll').addEventListener('click', () => {
+      pagesGrid.querySelectorAll('.page-thumb').forEach(t => t.classList.add('selected'));
+      updateSelectedInfo();
+    });
+    document.getElementById('btnDeselectAll').addEventListener('click', () => {
+      pagesGrid.querySelectorAll('.page-thumb').forEach(t => t.classList.remove('selected'));
+      updateSelectedInfo();
+    });
+
+    // ---- Rotation prévisualisation ----
     document.querySelectorAll('[data-angle]').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-angle]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedAngle = parseInt(btn.dataset.angle);
+        const angle = parseInt(btn.dataset.angle);
+        const selected = getSelectedIndices();
+        if (selected.length === 0) return;
+
+        selected.forEach(idx => {
+          pageRotations[idx] = (pageRotations[idx] + angle) % 360;
+          const thumb = pagesGrid.querySelector(`[data-index="${idx}"]`);
+          const canvas = thumb.querySelector('canvas');
+          canvas.style.transform = `rotate(${pageRotations[idx]}deg)`;
+          // Ajuster les marges pour que la miniature reste visible après rotation
+          const r = pageRotations[idx];
+          if (r === 90 || r === 270) {
+            const diff = (canvas.height - canvas.width) / 2;
+            canvas.style.margin = `${diff}px 0`;
+          } else {
+            canvas.style.margin = '0';
+          }
+        });
       });
     });
-    document.getElementById('btnAction').addEventListener('click', async () => {
-      if (!currentFile) return;
-      showPanel(ALL[2]);
+
+    // ---- Appliquer et envoyer ----
+    btnAction.addEventListener('click', async () => {
+      const selected = getSelectedIndices();
+      if (selected.length === 0) return;
+
+      // Construire la liste des rotations non nulles : "index:angle,index:angle"
+      const rotationMap = selected
+        .filter(idx => pageRotations[idx] !== 0)
+        .map(idx => `${idx + 1}:${pageRotations[idx]}`)
+        .join(',');
+
+      if (!rotationMap) {
+        alert('Aucune rotation appliquée sur les pages sélectionnées.');
+        return;
+      }
+
+      showPanel(progressPanel);
       const fd = new FormData();
       fd.append('file', currentFile);
-      fd.append('angle', selectedAngle);
-      const pages = document.getElementById('pages').value;
-      fd.append('pages', pages || 'all');
+      fd.append('rotation_map', rotationMap);
+
       try {
         const res = await fetch('/pdf/rotate', { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
         document.getElementById('btnDownload').href = `/download/${data.download_id}`;
         document.getElementById('btnDownload').download = data.output_filename;
-        showPanel(ALL[3]);
-      } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(ALL[4]); }
+        showPanel(resultPanel);
+      } catch(err) {
+        document.getElementById('errorMsg').textContent = err.message;
+        showPanel(errorPanel);
+      }
     });
-    function reset() { currentFile = null; showPanel(ALL[0]); }
+
+    function reset() { currentFile = null; pageRotations = []; pagesGrid.innerHTML = ''; showPanel(dropZone); }
     document.getElementById('btnReset').addEventListener('click', reset);
     document.getElementById('btnErrorReset').addEventListener('click', reset);
-    showPanel(ALL[0]);
+
+    showPanel(dropZone);
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
   </script>
 </body>

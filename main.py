@@ -26,7 +26,7 @@ from compressors.video import compress_video
 from compressors.archive import compress_archive
 from compressors.pdf_tools import (
     merge_pdfs, split_pdf, pdf_to_jpg, jpg_to_pdf,
-    rotate_pdf, watermark_pdf, add_page_numbers,
+    rotate_pdf, rotate_pdf_map, watermark_pdf, add_page_numbers,
     delete_pages, unlock_pdf, protect_pdf,
 )
 
@@ -301,8 +301,9 @@ async def jpg_to_pdf_route(files: List[UploadFile] = File(...)):
 @app.post("/pdf/rotate")
 async def pdf_rotate(
     file: UploadFile = File(...),
-    angle: int = Form(90),
-    pages: str = Form("all"),
+    angle: int = Form(None),
+    pages: str = Form(None),
+    rotation_map: str = Form(None),
 ):
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
@@ -310,7 +311,10 @@ async def pdf_rotate(
         with open(input_path, "wb") as fh:
             shutil.copyfileobj(file.file, fh)
         output_path = OUTPUT_DIR / f"{uid}_output.pdf"
-        rotate_pdf(input_path, output_path, angle=angle, pages=pages)
+        if rotation_map:
+            rotate_pdf_map(input_path, output_path, rotation_map)
+        else:
+            rotate_pdf(input_path, output_path, angle=angle or 90, pages=pages or "all")
         return {"success": True, "download_id": uid, "output_filename": "rotated.pdf"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
