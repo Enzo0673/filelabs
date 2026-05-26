@@ -57,6 +57,7 @@ Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur
 
 ### Vidéo
 - **Compresser vidéo** — MP4, MOV, AVI, MKV, WebM (codecs H.264 / H.265 / VP9)
+- **Éditer vidéo** — Découper (trim) et redimensionner
 
 ### Archives
 - **Compresser archive** — ZIP, 7z, RAR, TAR, GZ, BZ2, ZST (algorithmes zstd, lzma, gzip, brotli)

@@ -31,7 +31,7 @@ import uvicorn
 
 from compressors.image import compress_image
 from compressors.pdf import compress_pdf
-from compressors.video import compress_video
+from compressors.video import compress_video, trim_video, resize_video
 from compressors.archive import compress_archive
 from compressors.pdf_tools import (
     merge_pdfs, split_pdf, pdf_to_jpg, jpg_to_pdf,
@@ -721,6 +721,64 @@ async def office_to_pdf(file: UploadFile = File(...)):
         if output_dir.exists():
             import shutil as _shutil
             _shutil.rmtree(output_dir, ignore_errors=True)
+
+
+# ---- Découper vidéo ----
+@app.post("/video/trim")
+async def video_trim(
+    file: UploadFile = File(...),
+    start: float = Form(0.0),
+    end: float = Form(...),
+):
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "video.mp4").suffix.lower() or ".mp4"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    output_path = OUTPUT_DIR / f"{uid}_output{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["video"])
+        if start < 0 or end <= start:
+            raise HTTPException(status_code=400, detail="Timestamps invalides.")
+        result = trim_video(input_path, output_path, start=start, end=end)
+        stem = Path(file.filename).stem
+        return {"success": True, "download_id": uid + "_output", "output_filename": stem + "_trimmed" + result.suffix}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du découpage")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Redimensionner vidéo ----
+@app.post("/video/resize")
+async def video_resize_route(
+    file: UploadFile = File(...),
+    width: int = Form(None),
+    height: int = Form(None),
+):
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "video.mp4").suffix.lower() or ".mp4"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    output_path = OUTPUT_DIR / f"{uid}_output{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["video"])
+        if not width and not height:
+            raise HTTPException(status_code=400, detail="Au moins une dimension requise.")
+        if width and (width < 1 or width > 7680):
+            raise HTTPException(status_code=400, detail="Largeur invalide.")
+        if height and (height < 1 or height > 4320):
+            raise HTTPException(status_code=400, detail="Hauteur invalide.")
+        result = resize_video(input_path, output_path, width=width, height=height)
+        stem = Path(file.filename).stem
+        return {"success": True, "download_id": uid + "_output", "output_filename": stem + "_resized" + result.suffix}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du redimensionnement")
+    finally:
+        input_path.unlink(missing_ok=True)
 
 
 # ---- Redimensionner image ----

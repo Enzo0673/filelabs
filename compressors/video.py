@@ -128,3 +128,48 @@ def compress_video(
 
     ffmpeg.run(out, overwrite_output=True, quiet=True)
     return output_path
+
+
+def trim_video(input_path: Path, output_path: Path, start: float, end: float) -> Path:
+    """Découpe une vidéo entre start et end (en secondes)."""
+    ffmpeg_exe = _find_ffmpeg()
+    if not ffmpeg_exe:
+        raise RuntimeError("FFmpeg introuvable.")
+    if end <= start:
+        raise ValueError("La fin doit être après le début.")
+    os.environ["PATH"] = str(_BIN_DIR) + os.pathsep + os.environ.get("PATH", "")
+    ext = input_path.suffix.lower() or ".mp4"
+    output_path = output_path.with_suffix(ext)
+    out = (
+        ffmpeg
+        .input(str(input_path), ss=start, to=end)
+        .output(str(output_path), c="copy", loglevel="error")
+        .global_args("-hide_banner")
+    )
+    ffmpeg.run(out, overwrite_output=True, quiet=True)
+    return output_path
+
+
+def resize_video(input_path: Path, output_path: Path, width: int = None, height: int = None) -> Path:
+    """Redimensionne une vidéo. Conserve le ratio si une seule dimension est donnée."""
+    ffmpeg_exe = _find_ffmpeg()
+    if not ffmpeg_exe:
+        raise RuntimeError("FFmpeg introuvable.")
+    if not width and not height:
+        raise ValueError("Au moins une dimension requise.")
+    os.environ["PATH"] = str(_BIN_DIR) + os.pathsep + os.environ.get("PATH", "")
+    ext = input_path.suffix.lower() or ".mp4"
+    output_path = output_path.with_suffix(ext)
+    # Assure dimensions paires (requis H.264)
+    w = str(width) if width else "-2"
+    h = str(height) if height else "-2"
+    out = (
+        ffmpeg
+        .input(str(input_path))
+        .filter("scale", w=w, h=h)
+        .output(str(output_path), vcodec="libx264", crf=18, preset="fast",
+                acodec="aac", loglevel="error")
+        .global_args("-hide_banner")
+    )
+    ffmpeg.run(out, overwrite_output=True, quiet=True)
+    return output_path

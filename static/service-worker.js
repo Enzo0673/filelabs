@@ -26,6 +26,7 @@ const STATIC_ASSETS = [
   '/tool/repair-pdf',
   '/tool/extract-text-pdf',
   '/tool/office-to-pdf',
+  '/tool/edit-video',
   '/tool/compress-image',
   '/tool/resize-image',
   '/tool/convert-image',
