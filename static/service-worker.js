@@ -1,4 +1,4 @@
-const CACHE_NAME = 'compressit-v3';
+const CACHE_NAME = 'compressit-v4';
 const STATIC_ASSETS = [
   '/',
   '/static/style.css',
@@ -6,6 +6,7 @@ const STATIC_ASSETS = [
   '/static/tool.js',
   '/static/pdf-preview.js',
   '/static/utils.js',
+  '/static/banner.js',
   '/static/manifest.json',
   '/static/icons/icon-192.png',
   '/static/icons/icon-512.png',

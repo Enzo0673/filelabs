@@ -18,11 +18,17 @@
     <main class="main" style="max-width:640px">
       <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem">Confidentialité</h1>
 
+      <!-- Version en ligne -->
+      <div id="privacy-online" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:0.9rem;color:#78350f;line-height:1.6">
+        <strong>⚠️ Vous utilisez la version en ligne.</strong><br>
+        Dans cette version, vos fichiers transitent par notre serveur hébergé sur Render.com, puis sont supprimés automatiquement. Pour un traitement 100% privé, <a href="https://github.com/Enzo0673/compressit/releases/latest" target="_blank" rel="noopener" style="color:#92400e;font-weight:600">téléchargez l'application locale</a>.
+      </div>
+
       <div style="background:var(--surface);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px;font-size:0.95rem;line-height:1.7;color:var(--text-secondary)">
 
         <section>
-          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Vos fichiers restent sur votre machine</h2>
-          <p>CompressIt fonctionne entièrement en local. Lorsque vous traitez un fichier, celui-ci est envoyé uniquement à un serveur <strong style="color:var(--text-primary)">qui tourne sur votre propre ordinateur</strong> (127.0.0.1). Il ne transite jamais par internet, ni par nos serveurs, ni par des services tiers.</p>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px" id="privacy-title-files">Vos fichiers restent sur votre machine</h2>
+          <p id="privacy-body-files">CompressIt fonctionne entièrement en local. Lorsque vous traitez un fichier, celui-ci est envoyé uniquement à un serveur <strong style="color:var(--text-primary)">qui tourne sur votre propre ordinateur</strong> (127.0.0.1). Il ne transite jamais par internet, ni par nos serveurs, ni par des services tiers.</p>
         </section>
 
         <section>
@@ -32,7 +38,7 @@
 
         <section>
           <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Suppression automatique des fichiers</h2>
-          <p>Les fichiers traités sont stockés temporairement dans un dossier local (<code style="font-family:monospace;background:var(--surface-2,#f1f5f9);padding:2px 6px;border-radius:4px">outputs/</code>) sur votre machine, puis supprimés automatiquement au bout d'une heure. Vous pouvez aussi les supprimer manuellement via le bouton "Nouveau" après chaque traitement.</p>
+          <p id="privacy-body-delete">Les fichiers traités sont stockés temporairement dans un dossier local (<code style="font-family:monospace;background:var(--surface-2,#f1f5f9);padding:2px 6px;border-radius:4px">outputs/</code>) sur votre machine, puis supprimés automatiquement au bout d'une heure. Vous pouvez aussi les supprimer manuellement via le bouton "Nouveau" après chaque traitement.</p>
         </section>
 
         <section>
@@ -47,7 +53,18 @@
 
       </div>
     </main>
-    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+    <footer class="footer" id="privacy-footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
   </div>
+  <script>
+    const isLocal = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+    if (!isLocal) {
+      document.getElementById('privacy-online').style.display = 'block';
+      document.getElementById('privacy-title-files').textContent = 'Traitement sur nos serveurs';
+      document.getElementById('privacy-body-files').textContent = 'Dans la version en ligne, vos fichiers sont envoyés sur notre serveur hébergé sur Render.com pour y être traités. Ils ne sont jamais partagés avec des tiers et sont supprimés automatiquement.';
+      document.getElementById('privacy-body-delete').textContent = 'Les fichiers traités sont supprimés automatiquement de notre serveur après 1 heure. Vous pouvez aussi forcer la suppression immédiate via le bouton "Nouveau" après chaque traitement.';
+      document.getElementById('privacy-footer').textContent = 'Fichiers supprimés automatiquement après 1h — aucune conservation';
+    }
+  </script>
+  <script src="/static/banner.js"></script>
 </body>
 </html>

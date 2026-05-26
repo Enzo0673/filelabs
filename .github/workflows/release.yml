@@ -1,0 +1,182 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  # ─────────────────────────────────────────
+  # Windows — .exe
+  # ─────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Download FFmpeg (Windows)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bin
+          $url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+          Invoke-WebRequest $url -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg_tmp
+          $binDir = Get-ChildItem ffmpeg_tmp -Recurse -Directory | Where-Object { $_.Name -eq "bin" } | Select-Object -First 1
+          Copy-Item "$($binDir.FullName)/ffmpeg.exe" bin/
+          Copy-Item "$($binDir.FullName)/ffprobe.exe" bin/
+
+      - name: Download Poppler (Windows)
+        shell: pwsh
+        run: |
+          $url = "https://github.com/oschwartz10612/poppler-windows/releases/download/v24.02.0-0/Release-24.02.0-0.zip"
+          Invoke-WebRequest $url -OutFile poppler.zip
+          Expand-Archive poppler.zip -DestinationPath poppler_tmp
+          $libBin = Get-ChildItem poppler_tmp -Recurse -Directory | Where-Object { $_.Name -eq "bin" } | Select-Object -First 1
+          Copy-Item "$($libBin.FullName)/pdftoppm.exe" bin/
+          Copy-Item "$($libBin.FullName)/pdfinfo.exe" bin/
+
+      - name: Build .exe
+        run: pyinstaller compressit.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CompressIt-Windows
+          path: dist/CompressIt.exe
+
+  # ─────────────────────────────────────────
+  # macOS — binaire Unix
+  # ─────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Install FFmpeg + Poppler via Homebrew
+        run: |
+          brew install ffmpeg poppler
+          mkdir -p bin
+          cp $(which ffmpeg) bin/ffmpeg
+          cp $(which ffprobe) bin/ffprobe
+          cp $(which pdftoppm) bin/pdftoppm
+          cp $(which pdfinfo) bin/pdfinfo
+
+      - name: Build macOS app
+        run: pyinstaller compressit.spec
+
+      - name: Zip app
+        run: |
+          cd dist
+          zip -r CompressIt-macOS.zip CompressIt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CompressIt-macOS
+          path: dist/CompressIt-macOS.zip
+
+  # ─────────────────────────────────────────
+  # Linux — binaire
+  # ─────────────────────────────────────────
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg poppler-utils
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Copy FFmpeg + Poppler binaries
+        run: |
+          mkdir -p bin
+          cp $(which ffmpeg) bin/ffmpeg
+          cp $(which ffprobe) bin/ffprobe
+          cp $(which pdftoppm) bin/pdftoppm
+          cp $(which pdfinfo) bin/pdfinfo
+
+      - name: Build Linux binary
+        run: pyinstaller compressit.spec
+
+      - name: Tar binary
+        run: |
+          cd dist
+          tar -czf CompressIt-Linux.tar.gz CompressIt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CompressIt-Linux
+          path: dist/CompressIt-Linux.tar.gz
+
+  # ─────────────────────────────────────────
+  # Release GitHub — publie les 3 builds
+  # ─────────────────────────────────────────
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "CompressIt ${{ github.ref_name }}"
+          body: |
+            ## CompressIt ${{ github.ref_name }}
+
+            ### Téléchargement
+
+            | Plateforme | Fichier |
+            |---|---|
+            | Windows | `CompressIt.exe` — double-clic, aucune installation requise |
+            | macOS | `CompressIt-macOS.zip` — dézipper et lancer |
+            | Linux | `CompressIt-Linux.tar.gz` — extraire et `chmod +x CompressIt` |
+
+            ### Utilisation
+            Lancez l'exécutable → l'application s'ouvre automatiquement dans votre navigateur sur `http://localhost:8000`.
+
+            **100% local** — vos fichiers ne quittent jamais votre machine.
+          files: |
+            artifacts/CompressIt-Windows/CompressIt.exe
+            artifacts/CompressIt-macOS/CompressIt-macOS.zip
+            artifacts/CompressIt-Linux/CompressIt-Linux.tar.gz
+          draft: false
+          prerelease: false

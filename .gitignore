@@ -11,6 +11,13 @@ __pycache__/
 build/
 dist/
 
+# Binaires FFmpeg/Poppler (à placer manuellement avant le build local)
+bin/*.exe
+bin/ffmpeg
+bin/ffprobe
+bin/pdftoppm
+bin/pdfinfo
+
 # Environnements virtuels
 venv/
 .venv/

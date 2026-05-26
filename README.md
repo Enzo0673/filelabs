@@ -2,7 +2,22 @@
 
 **Outils fichiers gratuits, 100% locaux — images, PDF, vidéos, archives.**
 
-CompressIt est une application web qui tourne sur votre propre machine. Vos fichiers ne quittent jamais votre ordinateur : aucun serveur externe, aucun tracking, aucune publicité.
+[![Release](https://img.shields.io/github/v/release/Enzo0673/compressit?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=6366f1)](https://github.com/Enzo0673/compressit/releases/latest)
+[![License: MIT](https://img.shields.io/badge/licence-MIT-green?style=for-the-badge)](LICENSE)
+
+---
+
+## ⬇️ Télécharger l'application
+
+| Plateforme | Lien |
+|---|---|
+| **Windows** | [CompressIt.exe](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt.exe) |
+| **macOS** | [CompressIt-macOS.zip](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-macOS.zip) |
+| **Linux** | [CompressIt-Linux.tar.gz](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-Linux.tar.gz) |
+
+Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur. **Aucune installation requise.**
+
+> Une version en ligne est également disponible pour tester sans rien installer — les fichiers transitent alors par notre serveur et sont supprimés après 1h.
 
 ---
 
@@ -42,7 +57,7 @@ CompressIt est une application web qui tourne sur votre propre machine. Vos fich
 
 ## Pourquoi CompressIt ?
 
-Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. CompressIt tourne entièrement sur votre machine :
+Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. Avec l'app locale, CompressIt tourne entièrement sur votre machine :
 
 - **100% local** — vos fichiers ne transitent jamais par internet
 - **Aucune collecte** — pas de cookies, pas d'analytics, pas de compte requis
@@ -51,15 +66,15 @@ Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs s
 
 ---
 
-## Installation
+## Développement
 
 ### Prérequis
 
 - Python 3.10+
-- FFmpeg installé et accessible dans le PATH (pour la compression vidéo)
-- Poppler (pour PDF → JPG) : `apt install poppler-utils` / `brew install poppler` / [Windows binaries](https://github.com/oschwartz10612/poppler-windows/releases)
+- FFmpeg dans le PATH (compression vidéo)
+- Poppler (PDF → JPG) : `apt install poppler-utils` / `brew install poppler` / [Windows](https://github.com/oschwartz10612/poppler-windows/releases)
 
-### Démarrage rapide
+### Démarrage
 
 ```bash
 git clone https://github.com/Enzo0673/compressit.git
@@ -69,7 +84,19 @@ py main.py        # Windows
 python main.py    # Linux / Mac
 ```
 
-L'application s'ouvre automatiquement sur `http://localhost:8000`.
+### Build de l'exécutable
+
+```bash
+pip install pyinstaller
+
+# Placer les binaires FFmpeg + Poppler dans bin/
+# (voir compressit.spec pour les noms attendus)
+
+pyinstaller compressit.spec
+# → dist/CompressIt.exe (Windows) ou dist/CompressIt (Mac/Linux)
+```
+
+Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 
 ---
 
@@ -85,6 +112,7 @@ L'application s'ouvre automatiquement sur `http://localhost:8000`.
 | Frontend | HTML / CSS / JavaScript vanilla |
 | Aperçu PDF | pdf.js (servi en local) |
 | PWA | Service Worker + manifest.json |
+| Build | PyInstaller + GitHub Actions |
 
 ---
 
@@ -101,4 +129,4 @@ L'application s'ouvre automatiquement sur `http://localhost:8000`.
 
 ## Licence
 
-MIT
+[MIT](LICENSE)
