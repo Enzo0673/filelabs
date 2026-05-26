@@ -15,9 +15,14 @@
     <button class="online-banner-close" aria-label="Fermer">✕</button>
   `;
   banner.querySelector('.online-banner-close').addEventListener('click', () => {
+    document.body.style.paddingTop = '';
     banner.remove();
     sessionStorage.setItem('banner-dismissed', '1');
   });
 
   document.body.insertBefore(banner, document.body.firstChild);
+  // Décaler le contenu pour ne pas être caché sous la bannière fixe
+  requestAnimationFrame(() => {
+    document.body.style.paddingTop = banner.offsetHeight + 'px';
+  });
 })();

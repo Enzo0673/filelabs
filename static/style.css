@@ -408,7 +408,7 @@ body.home-body {
 /* ---- Tools grid ---- */
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
 }
 
@@ -524,7 +524,11 @@ body.home-body {
 
 /* ---- Bannière version en ligne ---- */
 .online-banner {
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
   background: linear-gradient(135deg, #fef3c7, #fde68a);
   border-bottom: 1px solid #f59e0b;
   padding: 10px 20px;
