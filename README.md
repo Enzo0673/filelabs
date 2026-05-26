@@ -8,8 +8,7 @@
 
 > 🖥️ **[Essayer en ligne](https://compressit.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/compressit/releases/latest)**
 
-<!-- Screenshot : remplacer par un vrai GIF ou image après la première exécution -->
-<!-- ![Aperçu CompressIt](docs/screenshot.png) -->
+![Aperçu CompressIt](docs/screenshot.png)
 
 ---
 
