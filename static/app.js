@@ -78,6 +78,12 @@ fileInput.addEventListener('change', () => {
 
 // ---- Load file ----
 function loadFile(file) {
+  const sizeError = checkFileSize(file);
+  if (sizeError) {
+    document.getElementById('errorMsg').textContent = sizeError;
+    showPanel(errorPanel);
+    return;
+  }
   currentFile = file;
   const type = detectType(file.name);
 
@@ -157,7 +163,7 @@ function finishProgress() {
   bar.style.transition = 'width 0.3s ease';
   bar.style.width = '100%';
 }
-btnCompress.addEventListener('click', async () => {
+btnCompress.addEventListener('click', withButtonLock(btnCompress, async () => {
   if (!currentFile) return;
 
   const fileType = detectType(currentFile.name);
@@ -214,7 +220,7 @@ btnCompress.addEventListener('click', async () => {
     console.error('Erreur compression:', err);
     showError(err.message);
   }
-});
+}));
 
 // ---- Show result ----
 function showResult(data) {

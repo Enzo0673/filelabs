@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
 from fastapi.responses import FileResponse, HTMLResponse
@@ -82,6 +84,15 @@ def _cleanup_outputs():
                 pass
 
 app = FastAPI(title="CompressIt", version="1.0.0")
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        not_found = BASE_DIR / "static" / "404.html"
+        if not_found.exists():
+            return HTMLResponse(content=not_found.read_text(encoding="utf-8"), status_code=404)
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
@@ -166,6 +177,12 @@ async def manifest():
     return FileResponse(path=path, media_type="application/manifest+json")
 
 
+@app.get("/favicon.ico")
+async def favicon():
+    path = BASE_DIR / "static" / "favicon.ico"
+    return FileResponse(path=path, media_type="image/x-icon")
+
+
 @app.get("/service-worker.js")
 async def service_worker():
     sw_path = BASE_DIR / "static" / "service-worker.js"
@@ -178,11 +195,18 @@ async def service_worker_static():
     return FileResponse(path=sw_path, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
 
 
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy():
+    path = BASE_DIR / "static" / "privacy.html"
+    return HTMLResponse(content=path.read_text(encoding="utf-8"))
+
+
 @app.get("/tool/{tool_name}", response_class=HTMLResponse)
 async def tool_page(tool_name: str):
     tool_path = BASE_DIR / "static" / "tools" / f"{tool_name}.html"
     if not tool_path.exists():
-        raise HTTPException(status_code=404, detail="Outil introuvable")
+        not_found = BASE_DIR / "static" / "404.html"
+        return HTMLResponse(content=not_found.read_text(encoding="utf-8"), status_code=404)
     return HTMLResponse(content=tool_path.read_text(encoding="utf-8"))
 
 

@@ -6,6 +6,8 @@
   <link rel="stylesheet" href="/static/style.css" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
   <style>
     .option-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
     .option-btn {
@@ -23,6 +25,7 @@
     .option-btn.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
     .option-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
   </style>
+  <script src="/static/utils.js"></script>
 </head>
 <body>
   <div class="app" style="max-width:640px">

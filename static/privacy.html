@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confidentialité — CompressIt</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
+      <a href="/" class="btn-back">← Retour</a>
+    </header>
+    <main class="main" style="max-width:640px">
+      <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem">Confidentialité</h1>
+
+      <div style="background:var(--surface);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px;font-size:0.95rem;line-height:1.7;color:var(--text-secondary)">
+
+        <section>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Vos fichiers restent sur votre machine</h2>
+          <p>CompressIt fonctionne entièrement en local. Lorsque vous traitez un fichier, celui-ci est envoyé uniquement à un serveur <strong style="color:var(--text-primary)">qui tourne sur votre propre ordinateur</strong> (127.0.0.1). Il ne transite jamais par internet, ni par nos serveurs, ni par des services tiers.</p>
+        </section>
+
+        <section>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Aucune collecte de données</h2>
+          <p>Nous ne collectons aucune donnée personnelle. Il n'y a ni cookies de tracking, ni analytics, ni publicité. Aucun identifiant utilisateur n'est créé ou stocké.</p>
+        </section>
+
+        <section>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Suppression automatique des fichiers</h2>
+          <p>Les fichiers traités sont stockés temporairement dans un dossier local (<code style="font-family:monospace;background:var(--surface-2,#f1f5f9);padding:2px 6px;border-radius:4px">outputs/</code>) sur votre machine, puis supprimés automatiquement au bout d'une heure. Vous pouvez aussi les supprimer manuellement via le bouton "Nouveau" après chaque traitement.</p>
+        </section>
+
+        <section>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Bibliothèques utilisées</h2>
+          <p>Le traitement des fichiers utilise uniquement des bibliothèques open source (Pillow, pikepdf, FFmpeg, pdf.js) qui s'exécutent localement. Ces bibliothèques ne transmettent aucune donnée à des serveurs externes.</p>
+        </section>
+
+        <section>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Code source</h2>
+          <p>CompressIt est open source. Vous pouvez inspecter l'intégralité du code sur <a href="https://github.com/Enzo0673/compressit" target="_blank" rel="noopener" style="color:var(--primary)">GitHub</a>.</p>
+        </section>
+
+      </div>
+    </main>
+    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+  </div>
+</body>
+</html>

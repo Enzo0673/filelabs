@@ -74,6 +74,13 @@ function initTool(config) {
   }
 
   function loadFile(file) {
+    const sizeError = checkFileSize(file);
+    if (sizeError) {
+      const el = document.getElementById('errorMsg');
+      if (el) el.textContent = sizeError;
+      showPanel(errorPanel);
+      return;
+    }
     currentFile = file;
     const type = detectType(file.name);
     const preview = document.getElementById('filePreview');
@@ -206,7 +213,7 @@ function initTool(config) {
 
   // ---- Compress ----
   if (btnCompress) {
-    btnCompress.addEventListener('click', async () => {
+    btnCompress.addEventListener('click', withButtonLock(btnCompress, async () => {
       if (!currentFile) return;
       const fileType = detectType(currentFile.name);
       showPanel(progressPanel);
@@ -256,7 +263,7 @@ function initTool(config) {
         finishProgress();
         showError(err.message);
       }
-    });
+    }));
   }
 
   // ---- Result ----
