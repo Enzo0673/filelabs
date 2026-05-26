@@ -1,4 +1,4 @@
-const CACHE_NAME = 'compressit-v4';
+const CACHE_NAME = 'compressit-v5';
 const STATIC_ASSETS = [
   '/',
   '/static/style.css',
@@ -23,6 +23,7 @@ const STATIC_ASSETS = [
   '/tool/delete-pages-pdf',
   '/tool/unlock-pdf',
   '/tool/protect-pdf',
+  '/tool/repair-pdf',
   '/tool/compress-image',
   '/tool/resize-image',
   '/tool/convert-image',

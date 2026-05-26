@@ -10,6 +10,7 @@ Outils PDF avancés — pikepdf
 - Suppression de pages
 - Déverrouiller PDF (supprimer mot de passe)
 - Protéger PDF (ajouter mot de passe)
+- Réparer PDF (reconstruire structure, pages vides, annotations aplaties)
 """
 
 from pathlib import Path
@@ -352,3 +353,123 @@ def protect_pdf(input_path: Path, output_path: Path, password: str = "") -> Path
         )
         pdf.save(output_path, encryption=encryption)
     return output_path
+
+
+# ---- Réparer PDF ----
+def repair_pdf(
+    input_path: Path,
+    output_path: Path,
+    remove_blank_pages: bool = False,
+    flatten_annotations: bool = False,
+) -> dict:
+    """
+    Répare un PDF :
+    - Reconstruit la structure (re-sérialisation pikepdf)
+    - Optionnel : supprime les pages visuellement vides
+    - Optionnel : aplatit les annotations/formulaires dans le contenu
+
+    Retourne {"output": Path, "removed_pages": int, "annotations_flattened": bool}
+    """
+    output_path = output_path.with_suffix(".pdf")
+
+    try:
+        pdf = pikepdf.open(input_path, suppress_warnings=True)
+    except Exception:
+        # Tentative de récupération en mode permissif
+        pdf = pikepdf.open(input_path, suppress_warnings=True, password="")
+
+    removed = 0
+
+    with pdf:
+        total = len(pdf.pages)
+
+        # ---- Aplatir les annotations ----
+        if flatten_annotations:
+            for page in pdf.pages:
+                if "/Annots" in page:
+                    annots = page["/Annots"]
+                    # Construire un stream de contenu pour chaque annotation visible
+                    flattened_streams = []
+                    for annot in annots:
+                        try:
+                            annot_obj = annot
+                            # Récupérer l'apparence normale (/AP /N)
+                            if "/AP" in annot_obj and "/N" in annot_obj["/AP"]:
+                                ap = annot_obj["/AP"]["/N"]
+                                # Récupérer la position (/Rect)
+                                if "/Rect" in annot_obj:
+                                    rect = annot_obj["/Rect"]
+                                    x1, y1, x2, y2 = (float(v) for v in rect)
+                                    # Écrire l'apparence à la bonne position
+                                    name = f"/Annot{len(flattened_streams)}"
+                                    if "/Resources" not in page:
+                                        page["/Resources"] = pikepdf.Dictionary()
+                                    res = page["/Resources"]
+                                    if "/XObject" not in res:
+                                        res["/XObject"] = pikepdf.Dictionary()
+                                    res["/XObject"][name] = ap
+                                    stream_data = (
+                                        f"q {x1:.2f} {y1:.2f} {x2-x1:.2f} {y2-y1:.2f} re W n "
+                                        f"{x1:.2f} {y1:.2f} cm {name} Do Q\n"
+                                    ).encode()
+                                    flattened_streams.append(pikepdf.Stream(pdf, stream_data))
+                        except Exception:
+                            continue
+                    # Supprimer les annotations de la page
+                    del page["/Annots"]
+                    # Ajouter les streams aplatis
+                    if flattened_streams:
+                        existing = page.get("/Contents")
+                        if existing is None:
+                            page["/Contents"] = pikepdf.Array(flattened_streams)
+                        elif isinstance(existing, pikepdf.Array):
+                            existing.extend(flattened_streams)
+                            page["/Contents"] = existing
+                        else:
+                            page["/Contents"] = pikepdf.Array([existing] + flattened_streams)
+
+        # ---- Supprimer les pages vides ----
+        if remove_blank_pages:
+            to_remove = []
+            for i, page in enumerate(pdf.pages):
+                if _is_blank_page(page):
+                    to_remove.append(i)
+            for i in sorted(to_remove, reverse=True):
+                del pdf.pages[i]
+            removed = len(to_remove)
+
+        # ---- Reconstruire la structure (re-sérialisation) ----
+        pdf.save(
+            output_path,
+            compress_streams=True,
+            object_stream_mode=pikepdf.ObjectStreamMode.generate,
+        )
+
+    return {
+        "output": output_path,
+        "removed_pages": removed,
+        "pages_remaining": len(pikepdf.open(output_path).pages),
+        "annotations_flattened": flatten_annotations,
+    }
+
+
+def _is_blank_page(page) -> bool:
+    """Retourne True si la page semble visuellement vide."""
+    try:
+        # Page sans /Contents
+        if "/Contents" not in page:
+            return True
+        contents = page["/Contents"]
+        # Récupérer les données du stream
+        if isinstance(contents, pikepdf.Array):
+            data = b"".join(s.read_bytes() for s in contents)
+        else:
+            data = contents.read_bytes()
+        # Nettoyer les opérateurs PDF triviaux (save/restore, matrix, etc.)
+        import re
+        stripped = re.sub(
+            rb'\s*(q|Q|cm|w|J|j|M|d|ri|i|gs|W|n)\s*', b'', data
+        ).strip()
+        return len(stripped) == 0
+    except Exception:
+        return False

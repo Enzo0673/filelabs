@@ -33,7 +33,7 @@ from compressors.archive import compress_archive
 from compressors.pdf_tools import (
     merge_pdfs, split_pdf, pdf_to_jpg, jpg_to_pdf,
     rotate_pdf, rotate_pdf_map, watermark_pdf, add_page_numbers,
-    delete_pages, unlock_pdf, protect_pdf,
+    delete_pages, unlock_pdf, protect_pdf, repair_pdf,
 )
 from compressors.image_tools import resize_image, convert_image, crop_image, rotate_image
 
@@ -562,6 +562,37 @@ async def pdf_protect(
         output_path = OUTPUT_DIR / f"{uid}_output.pdf"
         protect_pdf(input_path, output_path, password=password)
         return {"success": True, "download_id": uid, "output_filename": "protected.pdf"}
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement du fichier")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Réparer PDF ----
+@app.post("/pdf/repair")
+async def pdf_repair(
+    file: UploadFile = File(...),
+    remove_blank_pages: bool = Form(False),
+    flatten_annotations: bool = Form(False),
+):
+    uid = uuid.uuid4().hex
+    input_path = UPLOAD_DIR / f"{uid}_input.pdf"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["pdf"])
+        output_path = OUTPUT_DIR / f"{uid}_output.pdf"
+        result = repair_pdf(
+            input_path, output_path,
+            remove_blank_pages=remove_blank_pages,
+            flatten_annotations=flatten_annotations,
+        )
+        return {
+            "success": True,
+            "download_id": uid,
+            "output_filename": "repaired.pdf",
+            "removed_pages": result["removed_pages"],
+            "pages_remaining": result["pages_remaining"],
+        }
     except Exception as e:
         logger.error("%s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Erreur lors du traitement du fichier")
