@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/licence-MIT-green?style=for-the-badge)](LICENSE)
 [![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/compressit/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/compressit/actions)
 
-> 🖥️ **[Essayer en ligne](https://compressit.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/compressit/releases/latest)**
+> 🖥️ **[Essayer en ligne](https://compressit-w0ro.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/compressit/releases/latest)**
 
 ![Aperçu CompressIt](docs/screenshot.png)
 
