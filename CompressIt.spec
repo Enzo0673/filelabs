@@ -89,6 +89,7 @@ exe = EXE(
     a.datas,
     [],
     name='CompressIt',
+    icon='static/icons/icon.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

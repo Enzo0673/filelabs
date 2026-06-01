@@ -31,6 +31,7 @@ cmd = [
     sys.executable, "-m", "PyInstaller",
     "--onefile",
     "--noconsole",                          # Pas de terminal visible
+    "--icon", "static/icons/icon.ico",
     "--name", "CompressIt",
     # Embarquer les fichiers statiques et les modules compressors
     "--add-data", f"static{';'}static",     # (src;dest) format Windows
