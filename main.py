@@ -707,17 +707,25 @@ async def pdf_watermark(
     file: UploadFile = File(...),
     text: str = Form("CONFIDENTIEL"),
     opacity: float = Form(0.3),
+    position: str = Form("diagonal"),
+    color: str = Form("gray"),
 ):
     if len(text) > 200:
         raise HTTPException(status_code=400, detail="Texte trop long (200 caractères max)")
     if not 0.0 <= opacity <= 1.0:
         raise HTTPException(status_code=400, detail="Opacity doit être entre 0.0 et 1.0")
+    _VALID_POSITIONS = {"diagonal", "horizontal", "top", "bottom"}
+    if position not in _VALID_POSITIONS:
+        raise HTTPException(status_code=400, detail="Position invalide")
+    _VALID_COLORS = {"gray", "black", "red", "blue"}
+    if color not in _VALID_COLORS:
+        raise HTTPException(status_code=400, detail="Couleur invalide")
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
     try:
         await _save_upload(file, input_path, MAX_SIZE["pdf"])
         output_path = OUTPUT_DIR / f"{uid}_output.pdf"
-        watermark_pdf(input_path, output_path, text=text, opacity=opacity)
+        watermark_pdf(input_path, output_path, text=text, opacity=opacity, position=position, color=color)
         return {"success": True, "download_id": uid, "output_filename": "watermarked.pdf"}
     except Exception as e:
         logger.error("%s", e, exc_info=True)

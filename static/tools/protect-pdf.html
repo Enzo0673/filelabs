@@ -23,7 +23,7 @@
     <header class="header">
       <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
       <a href="/" class="btn-back">← Tous les outils</a>
-      <button class="btn-theme" title="Thème sombre/clair" onclick="window.__theme.toggle(); this.textContent = window.__theme.get() === 'dark' ? '☀️' : '🌙'">🌙</button>
+      <button class="btn-theme" id="btnTheme" title="Thème sombre/clair" onclick="window.__theme.toggle(); updateThemeIcon()"><svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg><svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
     </header>
     <div class="tool-hero"><span class="tool-hero-icon">🔒</span><div><h1 class="tool-hero-title">Protéger PDF</h1><p class="tool-hero-sub">Ajouter un mot de passe à un PDF</p></div></div>
     <main class="main">
@@ -35,11 +35,27 @@
       </div>
       <div class="config-panel" id="configPanel" hidden>
         <div class="file-preview" id="filePreview"></div>
-        <div class="expert-grid" style="margin-bottom:16px">
-          <label>Mot de passe<input type="password" id="password" placeholder="Choisissez un mot de passe" class="text-input" required /></label>
-          <label>Confirmer<input type="password" id="passwordConfirm" placeholder="Répétez le mot de passe" class="text-input" /></label>
+        <div class="expert-grid" style="margin-bottom:8px">
+          <label>Mot de passe
+            <input type="password" id="password" placeholder="Choisissez un mot de passe" class="text-input" required />
+          </label>
+          <label>Confirmer
+            <input type="password" id="passwordConfirm" placeholder="Répétez le mot de passe" class="text-input" />
+          </label>
         </div>
-        <button class="btn-compress" id="btnAction">🔒 Protéger</button>
+        <div id="pwdStrength" style="margin-bottom:8px;display:none">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="flex:1;height:4px;border-radius:99px;background:var(--border);overflow:hidden">
+              <div id="pwdStrengthBar" style="height:100%;border-radius:99px;transition:width .2s,background .2s;width:0%"></div>
+            </div>
+            <span id="pwdStrengthLabel" style="font-size:.75rem;font-weight:600;min-width:60px;text-align:right"></span>
+          </div>
+        </div>
+        <p id="pwdError" style="color:var(--error);font-size:.82rem;margin-bottom:12px;display:none"></p>
+        <button class="btn-compress" id="btnAction">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Protéger
+        </button>
       </div>
       <div class="progress-panel" id="progressPanel" hidden><div class="progress-spinner"></div><p class="progress-label">Protection en cours…</p><div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div></div>
       <div class="result-panel" id="resultPanel" hidden>
@@ -74,12 +90,32 @@
       renderPdfPreview(f, document.getElementById('filePreview'));
       showPanel(ALL[1]);
     }
+    document.getElementById('password').addEventListener('input', function() {
+      const v = this.value;
+      const bar = document.getElementById('pwdStrengthBar');
+      const label = document.getElementById('pwdStrengthLabel');
+      const wrap = document.getElementById('pwdStrength');
+      if (!v) { wrap.style.display='none'; return; }
+      wrap.style.display='block';
+      let score = 0;
+      if (v.length >= 8) score++;
+      if (v.length >= 12) score++;
+      if (/[A-Z]/.test(v)) score++;
+      if (/[0-9]/.test(v)) score++;
+      if (/[^A-Za-z0-9]/.test(v)) score++;
+      const levels = [{w:'20%',c:'#ef4444',t:'Faible'},{w:'40%',c:'#f97316',t:'Moyen'},{w:'60%',c:'#eab308',t:'Correct'},{w:'80%',c:'#22c55e',t:'Fort'},{w:'100%',c:'#10b981',t:'Très fort'}];
+      const l = levels[Math.min(score, 4)];
+      bar.style.width = l.w; bar.style.background = l.c; label.textContent = l.t; label.style.color = l.c;
+    });
+
     document.getElementById('btnAction').addEventListener('click', async () => {
       if (!currentFile) return;
       const pwd = document.getElementById('password').value;
       const pwdConfirm = document.getElementById('passwordConfirm').value;
-      if (!pwd) { alert('Veuillez entrer un mot de passe'); return; }
-      if (pwd !== pwdConfirm) { alert('Les mots de passe ne correspondent pas'); return; }
+      const errEl = document.getElementById('pwdError');
+      errEl.style.display = 'none';
+      if (!pwd) { errEl.textContent = 'Veuillez entrer un mot de passe.'; errEl.style.display = 'block'; return; }
+      if (pwd !== pwdConfirm) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
       showPanel(ALL[2]);
       const fd = new FormData();
       fd.append('file', currentFile);

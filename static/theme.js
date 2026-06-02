@@ -24,4 +24,17 @@
     get: () => document.documentElement.getAttribute('data-theme') || 'light',
     toggle: () => apply(window.__theme.get() === 'dark' ? 'light' : 'dark'),
   };
+
+  // Met à jour les icônes lune/soleil après chaque toggle
+  window.updateThemeIcon = function () {
+    var dark = window.__theme.get() === 'dark';
+    var moon = document.getElementById('iconMoon');
+    var sun  = document.getElementById('iconSun');
+    if (moon) moon.style.display = dark ? 'none' : '';
+    if (sun)  sun.style.display  = dark ? '' : 'none';
+  };
+
+  // Appliquer au chargement initial (le DOM n'est pas encore prêt ici,
+  // donc on diffère après DOMContentLoaded)
+  document.addEventListener('DOMContentLoaded', window.updateThemeIcon);
 })();

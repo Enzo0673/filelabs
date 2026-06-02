@@ -191,13 +191,24 @@ def rotate_pdf(input_path: Path, output_path: Path, angle: int = 90, pages: str 
 
 
 # ---- Filigrane PDF ----
-def watermark_pdf(input_path: Path, output_path: Path, text: str = "CONFIDENTIEL", opacity: float = 0.3) -> Path:
+def watermark_pdf(input_path: Path, output_path: Path, text: str = "CONFIDENTIEL", opacity: float = 0.3, position: str = "diagonal", color: str = "gray") -> Path:
     output_path = output_path.with_suffix(".pdf")
     # Sanitize text: truncate and escape PDF string special chars
     text = text[:200]
     text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-    # Couleur grise avec opacité simulée (PDF ne supporte pas l'alpha sur le texte directement)
-    gray = max(0.0, min(1.0, 1.0 - opacity))
+
+    # Couleur : convertir la sélection en composantes RGB [0..1]
+    _COLOR_MAP = {
+        "gray":  (0.5, 0.5, 0.5),
+        "black": (0.0, 0.0, 0.0),
+        "red":   (0.8, 0.1, 0.1),
+        "blue":  (0.1, 0.2, 0.8),
+    }
+    rc, gc, bc = _COLOR_MAP.get(color, (0.5, 0.5, 0.5))
+    # Simuler l'opacité en mélangeant avec le blanc (PDF texte n'a pas d'alpha natif)
+    r = rc + (1.0 - rc) * (1.0 - opacity)
+    g = gc + (1.0 - gc) * (1.0 - opacity)
+    b = bc + (1.0 - bc) * (1.0 - opacity)
 
     with pikepdf.open(input_path) as pdf:
         for page in pdf.pages:
@@ -207,15 +218,24 @@ def watermark_pdf(input_path: Path, output_path: Path, text: str = "CONFIDENTIEL
             cx = w / 2
             cy = h / 2
 
-            # Contenu PDF brut : texte diagonal centré
+            if position == "diagonal":
+                transform = f"-0.5 0.866 -0.866 -0.5 {cx:.1f} {cy:.1f} Tm\n"
+            elif position == "horizontal":
+                transform = f"1 0 0 1 {cx:.1f} {cy:.1f} Tm\n"
+            elif position == "top":
+                transform = f"1 0 0 1 {cx:.1f} {h * 0.85:.1f} Tm\n"
+            elif position == "bottom":
+                transform = f"1 0 0 1 {cx:.1f} {h * 0.10:.1f} Tm\n"
+            else:
+                transform = f"-0.5 0.866 -0.866 -0.5 {cx:.1f} {cy:.1f} Tm\n"
+
             watermark_stream = (
                 f"q\n"
-                f"{gray:.2f} {gray:.2f} {gray:.2f} rg\n"
+                f"{r:.3f} {g:.3f} {b:.3f} rg\n"
                 f"BT\n"
                 f"/Helvetica 48 Tf\n"
-                f"{gray:.2f} {gray:.2f} {gray:.2f} rg\n"
-                f"1 0 0 1 {cx:.1f} {cy:.1f} Tm\n"
-                f"-0.5 0.866 -0.866 -0.5 {cx:.1f} {cy:.1f} Tm\n"
+                f"{r:.3f} {g:.3f} {b:.3f} rg\n"
+                f"{transform}"
                 f"({text}) Tj\n"
                 f"ET\n"
                 f"Q\n"

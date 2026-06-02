@@ -21,14 +21,14 @@
 <body>
   <div class="app">
     <header class="header">
-      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6366f1"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0D9488"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">CompressIt</span></a></div>
       <a href="/" class="btn-back">← Tous les outils</a>
-      <button class="btn-theme" title="Thème sombre/clair" onclick="window.__theme.toggle(); this.textContent = window.__theme.get() === 'dark' ? '☀️' : '🌙'">🌙</button>
+      <button class="btn-theme" id="btnTheme" title="Thème sombre/clair" onclick="window.__theme.toggle(); updateThemeIcon()"><svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg><svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
     </header>
     <div class="tool-hero"><span class="tool-hero-icon">💧</span><div><h1 class="tool-hero-title">Filigrane PDF</h1><p class="tool-hero-sub">Ajouter un texte en filigrane sur chaque page</p></div></div>
     <main class="main">
       <div class="drop-zone" id="dropZone">
-        <div class="drop-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <div class="drop-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/></svg></div>
         <p class="drop-title">Glissez votre PDF ici</p><p class="drop-sub">ou</p>
         <label class="btn-browse" for="fileInput">Parcourir</label>
         <input type="file" id="fileInput" hidden accept=".pdf" />
@@ -39,11 +39,32 @@
           <label>Texte du filigrane<input type="text" id="wText" value="CONFIDENTIEL" class="text-input" /></label>
           <label>Opacité (0.1 – 1.0)<input type="number" id="wOpacity" class="text-input" min="0.1" max="1" step="0.1" value="0.3" /></label>
         </div>
-        <button class="btn-compress" id="btnAction">💧 Ajouter le filigrane</button>
+        <div style="margin-bottom:16px">
+          <label style="font-weight:600;font-size:.88rem;display:block;margin-bottom:8px">Position</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="preset-pos-btn selected" data-pos="diagonal">↗ Diagonal (centre)</button>
+            <button class="preset-pos-btn" data-pos="horizontal">— Horizontal (centre)</button>
+            <button class="preset-pos-btn" data-pos="top">↑ Haut</button>
+            <button class="preset-pos-btn" data-pos="bottom">↓ Bas</button>
+          </div>
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="font-weight:600;font-size:.88rem;display:block;margin-bottom:8px">Couleur</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem"><input type="radio" name="wColor" value="gray" checked /> Gris</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem"><input type="radio" name="wColor" value="black" /> Noir</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem"><input type="radio" name="wColor" value="red" /> Rouge</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem"><input type="radio" name="wColor" value="blue" /> Bleu</label>
+          </div>
+        </div>
+        <button class="btn-compress" id="btnAction">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v8M8 12h8"/></svg>
+          Ajouter le filigrane
+        </button>
       </div>
       <div class="progress-panel" id="progressPanel" hidden><div class="progress-spinner"></div><p class="progress-label">Ajout du filigrane…</p><div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div></div>
       <div class="result-panel" id="resultPanel" hidden>
-        <div class="result-badge" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">✓ Filigrane ajouté</div>
+        <div class="result-badge" style="background:linear-gradient(135deg,#0D9488,#0f766e)">✓ Filigrane ajouté</div>
         <div class="result-actions">
           <a class="btn-download" id="btnDownload" href="#"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3V11M9 11L5 7M9 11L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Télécharger</a>
           <button class="btn-reset" id="btnReset">Nouveau</button>
@@ -57,8 +78,19 @@
   <script src="/static/utils.js"></script>
   <script src="/static/pdf-preview.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/vendor/pdf.worker.min.js';</script>
+  <style>
+    .preset-pos-btn {
+      padding:7px 14px; border:1.5px solid var(--border); border-radius:8px;
+      background:var(--surface); font-size:.82rem; font-weight:600;
+      cursor:pointer; color:var(--text); transition:all .15s;
+    }
+    .preset-pos-btn:hover, .preset-pos-btn.selected {
+      border-color:var(--primary); background:var(--primary-light,#d1fae5); color:var(--primary);
+    }
+  </style>
   <script>
     let currentFile = null;
+    let selectedPos = 'diagonal';
     const ALL = ['dropZone','configPanel','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
     function showPanel(p) { ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
     function formatBytes(b) { return b < 1024*1024 ? (b/1024).toFixed(1)+' Ko' : (b/(1024*1024)).toFixed(2)+' Mo'; }
@@ -73,13 +105,24 @@
       renderPdfPreview(f, document.getElementById('filePreview'));
       showPanel(ALL[1]);
     }
+    // Position buttons
+    document.querySelectorAll('[data-pos]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-pos]').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedPos = btn.dataset.pos;
+      });
+    });
     document.getElementById('btnAction').addEventListener('click', async () => {
       if (!currentFile) return;
+      const color = document.querySelector('input[name="wColor"]:checked')?.value || 'gray';
       showPanel(ALL[2]);
       const fd = new FormData();
       fd.append('file', currentFile);
       fd.append('text', document.getElementById('wText').value || 'CONFIDENTIEL');
       fd.append('opacity', document.getElementById('wOpacity').value || '0.3');
+      fd.append('position', selectedPos);
+      fd.append('color', color);
       try {
         const res = await fetch('/pdf/watermark', { method: 'POST', body: fd });
         const data = await res.json();
