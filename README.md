@@ -2,7 +2,7 @@
 
 **Outils fichiers gratuits, 100% locaux — images, PDF, vidéos, archives.**
 
-[![Release](https://img.shields.io/github/v/release/Enzo0673/compressit?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=6366f1)](https://github.com/Enzo0673/compressit/releases/latest)
+[![Release](https://img.shields.io/github/v/release/Enzo0673/compressit?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=0D9488)](https://github.com/Enzo0673/compressit/releases/latest)
 [![License: MIT](https://img.shields.io/badge/licence-MIT-green?style=for-the-badge)](LICENSE)
 [![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/compressit/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/compressit/actions)
 
