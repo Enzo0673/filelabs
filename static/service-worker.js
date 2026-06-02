@@ -1,4 +1,4 @@
-const CACHE_NAME = 'compressit-v6';
+const CACHE_NAME = 'compressit-v7';
 const STATIC_ASSETS = [
   '/',
   '/static/style.css',
@@ -73,9 +73,21 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first pour toutes les pages et assets statiques
+  // Cache-first pour les assets statiques (CSS, JS, images, fonts)
   event.respondWith(
     caches.match(event.request).then(cached => {
+      // Network-first pour les pages HTML (tool/, index)
+      const isHtml = url.pathname === '/' || url.pathname.startsWith('/tool/');
+      if (isHtml) {
+        return fetch(event.request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        }).catch(() => cached);
+      }
+      // Cache-first pour assets statiques
       if (cached) return cached;
       return fetch(event.request).then(response => {
         if (response.ok) {
