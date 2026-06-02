@@ -193,8 +193,10 @@ def rotate_pdf(input_path: Path, output_path: Path, angle: int = 90, pages: str 
 # ---- Filigrane PDF ----
 def watermark_pdf(input_path: Path, output_path: Path, text: str = "CONFIDENTIEL", opacity: float = 0.3, position: str = "diagonal", color: str = "gray") -> Path:
     output_path = output_path.with_suffix(".pdf")
-    # Sanitize text: truncate and escape PDF string special chars
+    # Sanitize text: truncate, strip control characters, escape PDF string delimiters
     text = text[:200]
+    # Remove all control characters (< 0x20) including \n, \r which could break the PDF content stream
+    text = "".join(c for c in text if ord(c) >= 0x20)
     text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
     # Couleur : convertir la sélection en composantes RGB [0..1]

@@ -1021,6 +1021,9 @@ async def video_add_text(
         raise HTTPException(status_code=400, detail="Position invalide.")
     if font_size < 10 or font_size > 200:
         raise HTTPException(status_code=400, detail="Taille de police invalide (10-200).")
+    _VALID_FONT_COLORS = {"white", "yellow", "black", "red", "blue", "green", "cyan", "magenta", "orange", "pink", "gray", "grey", "purple"}
+    if font_color not in _VALID_FONT_COLORS and not re.match(r'^#[0-9a-fA-F]{6,8}$', font_color):
+        raise HTTPException(status_code=400, detail="Couleur de police invalide.")
     uid = uuid.uuid4().hex
     ext = Path(file.filename or "video.mp4").suffix.lower() or ".mp4"
     input_path = UPLOAD_DIR / f"{uid}_input{ext}"

@@ -714,10 +714,11 @@
       clipFiles.forEach((clip, idx) => {
         const item = document.createElement('div');
         item.className = 'clip-item';
+        // Build structure safely — clip.name is user-controlled (filename), never inject via innerHTML
         item.innerHTML = `
           <canvas class="clip-thumb" width="72" height="40" id="clipThumb${idx}"></canvas>
           <div class="clip-info">
-            <div class="clip-name">${idx + 1}. ${clip.name}</div>
+            <div class="clip-name" id="clipName${idx}"></div>
             <div class="clip-dur">${clip.dur ? fmtTime(clip.dur) : '…'}</div>
           </div>
           <div class="clip-order">
@@ -726,6 +727,8 @@
           </div>
           <button class="clip-remove" onclick="removeClip(${idx})" title="Supprimer">✕</button>
         `;
+        // Use textContent to safely set filename (prevents DOM XSS via malicious filenames)
+        item.querySelector('#clipName' + idx).textContent = `${idx + 1}. ${clip.name}`;
         list.appendChild(item);
         if (clip.thumbUrl) drawClipThumb(idx, clip.thumbUrl);
         else if (clip.file) extractClipThumb(idx, clip.file);
