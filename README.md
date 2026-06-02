@@ -134,11 +134,32 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 
 ## Sécurité
 
+Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Risk Rating** avec les [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) (`performing-web-application-vulnerability-triage`).
+
+10 vulnérabilités identifiées et corrigées (commits `f41bd80`, `d6ea1a5`) :
+
+| Sévérité | Vulnérabilité | CWE | OWASP 2021 |
+|---|---|---|---|
+| 🔴 Critique | Injection `font_color` → FFmpeg drawtext | CWE-78 | A03 - Injection |
+| 🟠 Élevé | Path traversal sur `/tool/{name}` | CWE-22 | A01 - Broken Access Control |
+| 🟠 Élevé | Bug `download_id` Office to PDF | CWE-706 | A04 - Insecure Design |
+| 🟠 Élevé | Rate limiter fuite mémoire (multi-worker) | CWE-400 | A05 - Misconfiguration |
+| 🟠 Élevé | Security headers manquants (CSP, HSTS…) | CWE-693 | A05 - Misconfiguration |
+| 🟡 Modéré | `/status` exposait infos système en prod | CWE-200 | A02 - Info Exposure |
+| 🟡 Modéré | `watermark text` non borné en longueur | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `opacity` et `dpi` non validés | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `ranges` PDF split non validé | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `position` page-numbers sans whitelist | CWE-20 | A03 - Injection |
+
+Mesures en place :
+
 - CORS restreint à `localhost`
-- Validation des paramètres côté serveur (whitelists codec, DPI, qualité…)
-- Protection path traversal sur les téléchargements
+- Validation stricte des paramètres côté serveur (whitelists codec, DPI, qualité, couleur…)
+- Protection path traversal sur les téléchargements et les routes outils
 - Protection zip bomb sur les archives (ratio, taille décompressée)
 - Fichiers temporaires supprimés automatiquement après 1 heure
+- Security headers HTTP sur toutes les réponses (`X-Frame-Options`, `X-Content-Type-Options`, `CSP`, `HSTS`, `Referrer-Policy`, `Permissions-Policy`)
+- Endpoint `/status` désactivé en production
 - Aucune stack trace exposée au client
 
 ---
