@@ -41,7 +41,7 @@
         </svg>
         <span class="logo-text">CompressIt</span>
       </div>
-      <span class="home-tagline">100% local &mdash; vos fichiers ne quittent jamais votre machine</span>
+      <span class="home-tagline" id="homeTagline">100% local &mdash; vos fichiers ne quittent jamais votre machine</span>
       <button class="btn-theme" id="btnTheme" title="Basculer thème sombre/clair" aria-label="Basculer thème" onclick="window.__theme.toggle(); updateThemeIcon()">
         <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -247,7 +247,7 @@
       </div>
     </section>
 
-    <footer class="home-footer">
+    <footer class="home-footer" id="homeFooter">
       CompressIt &mdash; 100% local, aucune donnée envoyée sur internet
       &nbsp;&middot;&nbsp; <a href="/privacy" style="color:inherit;opacity:0.6;text-decoration:underline">Confidentialité</a>
     </footer>
@@ -263,6 +263,18 @@
       document.getElementById('iconSun').style.display = isDark ? '' : 'none';
     }
     document.addEventListener('DOMContentLoaded', updateThemeIcon);
+
+    // Adapter le tagline et le footer selon version locale ou web
+    (function () {
+      const h = location.hostname;
+      const isLocal = h === '' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.');
+      if (!isLocal) {
+        const tagline = document.getElementById('homeTagline');
+        if (tagline) tagline.textContent = 'Version en ligne — fichiers supprimés après 1h';
+        const footer = document.getElementById('homeFooter');
+        if (footer) footer.innerHTML = 'CompressIt &mdash; fichiers supprimés automatiquement après 1h &nbsp;&middot;&nbsp; <a href="/privacy" style="color:inherit;opacity:0.6;text-decoration:underline">Confidentialité</a>';
+      }
+    })();
   </script>
   <script src="/static/home.js"></script>
   <script src="/static/banner.js"></script>
