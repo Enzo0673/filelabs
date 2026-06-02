@@ -435,6 +435,9 @@ async def compress(
                     max_height=vid_max_height, on_progress=_progress_cb,
                 )
             )
+            _video_progress[progress_key] = 100.0
+            # Laisser le temps au client SSE de lire la valeur 100 avant de supprimer
+            await asyncio.sleep(2.0)
             _video_progress.pop(progress_key, None)
         else:
             output_path = compress_archive(
@@ -493,16 +496,20 @@ async def compress_progress(uid: str):
     _validate_uid(uid)
 
     async def event_stream():
-        sent_done = False
+        # Attendre jusqu'à 10s que le job démarre (le client SSE peut s'ouvrir avant l'upload)
+        wait_iters = 0
+        while _video_progress.get(uid) is None and wait_iters < 25:
+            await asyncio.sleep(0.4)
+            wait_iters += 1
+
         while True:
             pct = _video_progress.get(uid)
             if pct is None:
-                if not sent_done:
-                    yield "data: 100\n\n"
+                # Job terminé et nettoyé — envoyer 100 et fermer
+                yield "data: 100\n\n"
                 break
             yield f"data: {pct:.1f}\n\n"
             if pct >= 100.0:
-                sent_done = True
                 break
             await asyncio.sleep(0.4)
 

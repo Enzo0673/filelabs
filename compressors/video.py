@@ -118,13 +118,13 @@ def compress_video(
         "b:a": "128k" if level != "aggressive" else "96k",
     }
 
+    output_kwargs = {**video_kwargs, **audio_kwargs, "loglevel": "error"}
+    if codec_key != "vp9":
+        output_kwargs["movflags"] = "+faststart"
     out = ffmpeg.output(
         video, audio,
         str(output_path),
-        **video_kwargs,
-        **audio_kwargs,
-        movflags="+faststart" if codec_key != "vp9" else None,
-        loglevel="error",
+        **output_kwargs,
     )
     out = out.global_args("-hide_banner", "-threads", "0")
 
@@ -217,7 +217,8 @@ def resize_video(input_path: Path, output_path: Path, width: int = None, height:
 
 
 def merge_videos(input_paths: list, output_path: Path) -> Path:
-    """Concatène plusieurs vidéos dans l'ordre. Ré-encode pour harmoniser les flux."""
+    """Concatène plusieurs vidéos dans l'ordre. Utilise le concat demuxer pour éviter
+    les problèmes de splitting de streams avec ffmpeg-python."""
     ffmpeg_exe = _find_ffmpeg()
     if not ffmpeg_exe:
         raise RuntimeError("FFmpeg introuvable.")
@@ -227,27 +228,37 @@ def merge_videos(input_paths: list, output_path: Path) -> Path:
 
     output_path = output_path.with_suffix(".mp4")
 
-    # Construire la liste de fichiers pour le filtre concat
-    inputs = [ffmpeg.input(str(p)) for p in input_paths]
-    # Intercaler video + audio pour chaque input
-    streams = []
-    for inp in inputs:
-        streams.append(inp.video)
-        streams.append(inp.audio)
+    # Créer un fichier list temporaire pour le concat demuxer
+    list_path = output_path.with_suffix(".txt")
+    try:
+        with open(list_path, "w", encoding="utf-8") as f:
+            for p in input_paths:
+                # Échapper les apostrophes dans les chemins
+                safe = str(Path(p).resolve()).replace("'", "'\\''")
+                f.write(f"file '{safe}'\n")
 
-    concat = ffmpeg.concat(*streams, v=1, a=1)
-    out = ffmpeg.output(
-        concat,
-        str(output_path),
-        vcodec="libx264",
-        crf=22,
-        preset="fast",
-        acodec="aac",
-        **{"b:a": "128k"},
-        loglevel="error",
-    ).global_args("-hide_banner")
+        cmd = [
+            ffmpeg_exe,
+            "-hide_banner",
+            "-y",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", str(list_path),
+            "-vcodec", "libx264",
+            "-crf", "22",
+            "-preset", "fast",
+            "-acodec", "aac",
+            "-b:a", "128k",
+            "-loglevel", "error",
+            str(output_path),
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"FFmpeg merge échoué : {result.stderr[:500]}")
+    finally:
+        if list_path.exists():
+            list_path.unlink()
 
-    ffmpeg.run(out, overwrite_output=True, quiet=True)
     return output_path
 
 

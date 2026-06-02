@@ -107,6 +107,10 @@
       zip:'archive','7z':'archive',rar:'archive',gz:'archive',tar:'archive',bz2:'archive',zst:'archive',
     };
     function detectType(name) { return EXT_TYPE[name.split('.').pop().toLowerCase()] || 'archive'; }
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     function formatBytes(b) {
       if (b < 1024) return b + ' o';
       if (b < 1048576) return (b/1024).toFixed(1) + ' Ko';
