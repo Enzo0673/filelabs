@@ -134,9 +134,9 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 
 ## Sécurité
 
-Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Risk Rating** avec les [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) (`performing-web-application-vulnerability-triage`).
+Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Risk Rating** avec les [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) (`performing-web-application-vulnerability-triage` + `performing-web-application-penetration-test`).
 
-10 vulnérabilités identifiées et corrigées (commits `f41bd80`, `d6ea1a5`) :
+13 vulnérabilités identifiées et corrigées sur 2 passes d'audit (commits `f41bd80`, `d6ea1a5`, `d3fa307`) :
 
 | Sévérité | Vulnérabilité | CWE | OWASP 2021 |
 |---|---|---|---|
@@ -145,11 +145,14 @@ Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Ri
 | 🟠 Élevé | Bug `download_id` Office to PDF | CWE-706 | A04 - Insecure Design |
 | 🟠 Élevé | Rate limiter fuite mémoire (multi-worker) | CWE-400 | A05 - Misconfiguration |
 | 🟠 Élevé | Security headers manquants (CSP, HSTS…) | CWE-693 | A05 - Misconfiguration |
+| 🟠 Élevé | PDF Stream Injection via `\n` dans le texte watermark | CWE-74 | A03 - Injection |
+| 🟠 Élevé | DOM XSS via `clip.name` injecté dans `innerHTML` | CWE-79 | A03 - Injection |
 | 🟡 Modéré | `/status` exposait infos système en prod | CWE-200 | A02 - Info Exposure |
 | 🟡 Modéré | `watermark text` non borné en longueur | CWE-20 | A03 - Injection |
 | 🟡 Modéré | `opacity` et `dpi` non validés | CWE-20 | A03 - Injection |
 | 🟡 Modéré | `ranges` PDF split non validé | CWE-20 | A03 - Injection |
 | 🟡 Modéré | `position` page-numbers sans whitelist | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `font_color` validé uniquement côté compresseur (defense-in-depth manquante) | CWE-20 | A03 - Injection |
 
 Mesures en place :
 
