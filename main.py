@@ -135,10 +135,12 @@ _IS_LOCAL = os.environ.get("RENDER") is None
 _rate_buckets: dict = {}  # {ip: [timestamp, ...]}
 _RATE_LIMIT = 20          # requêtes max
 _RATE_WINDOW = 60         # par fenêtre de 60s
+_RATE_LAST_PURGE = time.time()
 _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/")
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
+    global _RATE_LAST_PURGE
     if not _IS_LOCAL and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
         ip = request.client.host if request.client else "unknown"
         now = time.time()
@@ -148,6 +150,13 @@ async def rate_limit_middleware(request: Request, call_next):
             return JSONResponse({"detail": "Trop de requêtes — réessayez dans une minute."}, status_code=429)
         bucket.append(now)
         _rate_buckets[ip] = bucket
+        # Purge des IPs inactives toutes les 5 minutes pour éviter la fuite mémoire
+        if now - _RATE_LAST_PURGE > 300:
+            cutoff = now - _RATE_WINDOW
+            for k in list(_rate_buckets.keys()):
+                if not _rate_buckets[k] or max(_rate_buckets[k]) < cutoff:
+                    del _rate_buckets[k]
+            _RATE_LAST_PURGE = now
     return await call_next(request)
 
 @app.exception_handler(StarletteHTTPException)
@@ -289,7 +298,13 @@ async def privacy():
 
 @app.get("/tool/{tool_name}", response_class=HTMLResponse)
 async def tool_page(tool_name: str):
+    tools_dir = (BASE_DIR / "static" / "tools").resolve()
     tool_path = BASE_DIR / "static" / "tools" / f"{tool_name}.html"
+    # Protection path traversal
+    try:
+        tool_path.resolve().relative_to(tools_dir)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Nom d'outil invalide")
     if not tool_path.exists():
         not_found = BASE_DIR / "static" / "404.html"
         return HTMLResponse(content=not_found.read_text(encoding="utf-8"), status_code=404)
@@ -579,6 +594,8 @@ async def pdf_split(
     file: UploadFile = File(...),
     ranges: str = Form(None),
 ):
+    if ranges is not None and len(ranges) > 500:
+        raise HTTPException(status_code=400, detail="Paramètre ranges trop long")
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
     try:
@@ -601,6 +618,8 @@ async def pdf_to_jpg_route(
     file: UploadFile = File(...),
     dpi: int = Form(150),
 ):
+    if not 50 <= dpi <= 600:
+        raise HTTPException(status_code=400, detail="DPI doit être entre 50 et 600")
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
     try:
@@ -669,6 +688,10 @@ async def pdf_watermark(
     text: str = Form("CONFIDENTIEL"),
     opacity: float = Form(0.3),
 ):
+    if len(text) > 200:
+        raise HTTPException(status_code=400, detail="Texte trop long (200 caractères max)")
+    if not 0.0 <= opacity <= 1.0:
+        raise HTTPException(status_code=400, detail="Opacity doit être entre 0.0 et 1.0")
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
     try:
@@ -689,6 +712,9 @@ async def pdf_page_numbers(
     file: UploadFile = File(...),
     position: str = Form("bottom-center"),
 ):
+    _VALID_PAGE_NUMBER_POSITIONS = {"bottom-center", "bottom-left", "bottom-right", "top-center", "top-left", "top-right"}
+    if position not in _VALID_PAGE_NUMBER_POSITIONS:
+        raise HTTPException(status_code=400, detail="Position invalide")
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
     try:
@@ -846,7 +872,7 @@ async def office_to_pdf(file: UploadFile = File(...)):
         stem = Path(file.filename).stem
         return {
             "success": True,
-            "download_id": uid + "_output",
+            "download_id": uid,
             "output_filename": stem + ".pdf",
         }
     except Exception as e:

@@ -283,6 +283,16 @@ def add_text_video(
     xy = pos_map.get(position, pos_map["bottom"])
     x, y = xy.split(":", 1)
 
+    # Valider font_color : couleur nommée ou hex #RRGGBB(AA) uniquement
+    import re as _re_color
+    _VALID_COLOR_RE = _re_color.compile(r'^#[0-9a-fA-F]{6,8}$')
+    _NAMED_COLORS = {
+        "white", "black", "red", "green", "blue", "yellow", "orange",
+        "purple", "pink", "gray", "grey", "cyan", "magenta",
+    }
+    if font_color not in _NAMED_COLORS and not _VALID_COLOR_RE.match(font_color):
+        raise ValueError(f"Couleur invalide : {font_color!r}")
+
     # Sanitiser le texte pour drawtext (échapper les caractères spéciaux)
     safe_text = text.replace("\\", "\\\\").replace("'", "\\'").replace(":", "\\:").replace(",", "\\,")
 
