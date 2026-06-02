@@ -159,6 +159,26 @@ async def rate_limit_middleware(request: Request, call_next):
             _RATE_LAST_PURGE = now
     return await call_next(request)
 
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if not _IS_LOCAL:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none';"
+        )
+    return response
+
+
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     if exc.status_code == 404:
@@ -1128,6 +1148,8 @@ async def health():
 
 @app.get("/status")
 async def status():
+    if not _IS_LOCAL:
+        raise HTTPException(status_code=404, detail="Not found")
     return {
         "version": "1.1.0",
         "ffmpeg": _FFMPEG_AVAILABLE,
