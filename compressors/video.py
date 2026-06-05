@@ -1,7 +1,7 @@
 """
 Compression vidéo — ffmpeg-python
 Codecs supportés : H.264 (h264), H.265/HEVC (h265), VP9 (vp9)
-FFmpeg peut être placé dans compressit/bin/ffmpeg.exe (pas besoin d'installation système)
+FFmpeg peut être placé dans filelab/bin/ffmpeg.exe (pas besoin d'installation système)
 """
 
 from pathlib import Path
@@ -69,9 +69,9 @@ def compress_video(
     ffmpeg_exe = _find_ffmpeg()
     if not ffmpeg_exe:
         raise RuntimeError(
-            "FFmpeg introuvable. Placez ffmpeg.exe dans le dossier compressit/bin/ "
+            "FFmpeg introuvable. Placez ffmpeg.exe dans le dossier filelab/bin/ "
             "(téléchargement : https://www.gyan.dev/ffmpeg/builds/ → ffmpeg-release-essentials.zip, "
-            "extrayez uniquement bin/ffmpeg.exe dans compressit/bin/)."
+            "extrayez uniquement bin/ffmpeg.exe dans filelab/bin/)."
         )
 
     # Indiquer à ffmpeg-python quel exécutable utiliser

@@ -10,7 +10,7 @@ Téléchargement (Windows, ~90 Mo) :
   4. Copiez uniquement le fichier  bin\ffmpeg.exe  dans CE dossier
 
 Résultat attendu :
-  compressit/
+  filelab/
   └── bin/
       └── ffmpeg.exe   ← ce fichier
 

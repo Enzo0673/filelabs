@@ -9,7 +9,7 @@
   banner.className = 'online-banner';
   banner.innerHTML = `
     <span>⚠️ Version en ligne : vos fichiers transitent par notre serveur et sont supprimés après 1h.</span>
-    <a href="https://github.com/Enzo0673/compressit/releases/latest" target="_blank" rel="noopener">
+    <a href="https://github.com/Enzo0673/filelab/releases/latest" target="_blank" rel="noopener">
       ↓ Télécharger l'app locale (100% privé)
     </a>
   `;

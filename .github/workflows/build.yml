@@ -1,4 +1,4 @@
-name: Build CompressIt.exe
+name: Build FileLab.exe
 
 on:
   push:
@@ -30,6 +30,6 @@ jobs:
       - name: Upload .exe as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CompressIt-exe
-          path: dist/CompressIt.exe
+          name: FileLab-exe
+          path: dist/FileLab.exe
           retention-days: 30

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://compressit-w0ro.onrender.com/sitemap.xml
+Sitemap: https://filelab.onrender.com/sitemap.xml
