@@ -1,5 +1,5 @@
 # ============================================================
-# CompressIt — Dépendances Python
+# FileLab — Dépendances Python
 # Install : py -m pip install -r requirements.txt
 # ============================================================
 

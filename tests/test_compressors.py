@@ -1,5 +1,5 @@
 """
-Tests unitaires CompressIt
+Tests unitaires FileLab
 Run : py -m pytest tests/ -v
 """
 import io

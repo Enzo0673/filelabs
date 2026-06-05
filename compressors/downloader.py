@@ -1,5 +1,5 @@
 """
-CompressIt — Video Downloader
+FileLab — Video Downloader
 Wrapper yt-dlp pour téléchargement multi-plateforme (YouTube, TikTok, Instagram, etc.)
 """
 import json

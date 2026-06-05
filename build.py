@@ -1,5 +1,5 @@
 """
-build.py — Génère CompressIt.exe avec PyInstaller
+build.py — Génère FileLab.exe avec PyInstaller
 Usage : py build.py
 """
 
@@ -32,7 +32,7 @@ cmd = [
     "--onefile",
     "--noconsole",                          # Pas de terminal visible
     "--icon", "static/icons/icon.ico",
-    "--name", "CompressIt",
+    "--name", "FileLab",
     # Embarquer les fichiers statiques et les modules compressors
     "--add-data", f"static{';'}static",     # (src;dest) format Windows
     "--add-data", f"compressors{';'}compressors",
@@ -64,14 +64,14 @@ cmd = [
 run(cmd)
 
 # 4. Résultat
-exe = HERE / "dist" / "CompressIt.exe"
+exe = HERE / "dist" / "FileLab.exe"
 if exe.exists():
     size_mb = exe.stat().st_size / (1024 * 1024)
     print(f"\n{'='*50}")
     print(f"  Build réussi !")
-    print(f"  Fichier : dist/CompressIt.exe")
+    print(f"  Fichier : dist/FileLab.exe")
     print(f"  Taille  : {size_mb:.1f} Mo")
     print(f"{'='*50}\n")
 else:
-    print("\nERREUR : CompressIt.exe introuvable après le build.")
+    print("\nERREUR : FileLab.exe introuvable après le build.")
     sys.exit(1)

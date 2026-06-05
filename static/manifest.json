@@ -1,6 +1,6 @@
 {
-  "name": "CompressIt",
-  "short_name": "CompressIt",
+  "name": "FileLab",
+  "short_name": "FileLab",
   "description": "Compression locale de fichiers — images, vidéos, PDF, archives",
   "start_url": "/",
   "display": "standalone",

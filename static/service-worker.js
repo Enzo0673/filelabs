@@ -1,4 +1,4 @@
-const CACHE_NAME = 'compressit-v8';
+const CACHE_NAME = 'filelab-v1';
 const STATIC_ASSETS = [
   '/',
   '/static/style.css',

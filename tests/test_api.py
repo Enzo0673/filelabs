@@ -1,5 +1,5 @@
 """
-Tests end-to-end de l'API CompressIt via FastAPI TestClient.
+Tests end-to-end de l'API FileLab via FastAPI TestClient.
 Lance avec : pytest tests/test_api.py -v
 """
 import io
@@ -31,7 +31,7 @@ def _make_pdf_bytes() -> bytes:
 @pytest.fixture(scope="session")
 def client(tmp_path_factory):
     import main
-    tmp = tmp_path_factory.mktemp("compressit_test")
+    tmp = tmp_path_factory.mktemp("filelab_test")
     main.UPLOAD_DIR = tmp / "uploads"
     main.OUTPUT_DIR = tmp / "outputs"
     main.UPLOAD_DIR.mkdir()
@@ -50,7 +50,7 @@ def test_health(client):
 def test_root(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert "CompressIt" in r.text
+    assert "FileLab" in r.text
 
 
 # ---- /status ----

@@ -1,5 +1,5 @@
 /* =========================================================
-   CompressIt — home.js
+   FileLab — home.js
    - Drag & drop global : affiche les outils compatibles avec le fichier déposé
    - Historique des outils récents (localStorage)
    ========================================================= */
@@ -172,7 +172,7 @@
   }
 
   // ── Historique des outils récents ──────────────────────────────────────────
-  const HISTORY_KEY = 'compressit-history';
+  const HISTORY_KEY = 'filelab-history';
   const MAX_HISTORY = 5;
 
   function getHistory() {

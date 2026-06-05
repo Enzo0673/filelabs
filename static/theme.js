@@ -1,9 +1,9 @@
 /* =========================================================
-   CompressIt — theme.js
+   FileLab — theme.js
    Dark mode : appliqué avant le premier rendu pour éviter le flash
    ========================================================= */
 (function () {
-  const STORAGE_KEY = 'compressit-theme';
+  const STORAGE_KEY = 'filelab-theme';
 
   function getPreferred() {
     const saved = localStorage.getItem(STORAGE_KEY);

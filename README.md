@@ -1,4 +1,4 @@
-# CompressIt
+# FileLab
 
 **Outils fichiers gratuits, 100% locaux — images, PDF, vidéos, archives.**
 
@@ -8,7 +8,7 @@
 
 > 🖥️ **[Essayer en ligne](https://compressit-w0ro.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/compressit/releases/latest)**
 
-![Aperçu CompressIt](docs/screenshot.png)
+![Aperçu FileLab](docs/screenshot.png)
 
 ---
 
@@ -16,9 +16,9 @@
 
 | Plateforme | Lien |
 |---|---|
-| **Windows** | [CompressIt.exe](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt.exe) |
-| **macOS** | [CompressIt-macOS.zip](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-macOS.zip) |
-| **Linux** | [CompressIt-Linux.tar.gz](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-Linux.tar.gz) |
+| **Windows** | [FileLab.exe](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt.exe) |
+| **macOS** | [FileLab-macOS.zip](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-macOS.zip) |
+| **Linux** | [FileLab-Linux.tar.gz](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-Linux.tar.gz) |
 
 Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur. **Aucune installation requise.**
 
@@ -67,9 +67,9 @@ Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur
 
 ---
 
-## Pourquoi CompressIt ?
+## Pourquoi FileLab ?
 
-Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. Avec l'app locale, CompressIt tourne entièrement sur votre machine :
+Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. Avec l'app locale, FileLab tourne entièrement sur votre machine :
 
 - **100% local** — vos fichiers ne transitent jamais par internet (app locale)
 - **Aucun compte requis** — pas d'inscription, pas de limite de taille
@@ -108,7 +108,7 @@ pip install pyinstaller
 # (voir compressit.spec pour les noms attendus)
 
 pyinstaller compressit.spec
-# → dist/CompressIt.exe (Windows) ou dist/CompressIt (Mac/Linux)
+# → dist/FileLab.exe (Windows) ou dist/FileLab (Mac/Linux)
 ```
 
 Les builds sont automatisés via GitHub Actions à chaque tag `v*`.

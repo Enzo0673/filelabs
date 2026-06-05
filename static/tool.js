@@ -1,5 +1,5 @@
 /* =========================================================
-   CompressIt — tool.js
+   FileLab — tool.js
    Script commun à toutes les pages outils
    ========================================================= */
 

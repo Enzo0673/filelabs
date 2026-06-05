@@ -1,4 +1,4 @@
-INSTRUCTIONS — FFmpeg pour CompressIt
+INSTRUCTIONS — FFmpeg pour FileLab
 ======================================
 
 Placez ici uniquement le fichier : ffmpeg.exe
@@ -14,4 +14,4 @@ Résultat attendu :
   └── bin/
       └── ffmpeg.exe   ← ce fichier
 
-Aucune installation système requise. CompressIt l'utilisera automatiquement.
+Aucune installation système requise. FileLab l'utilisera automatiquement.
