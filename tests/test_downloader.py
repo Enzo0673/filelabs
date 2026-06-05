@@ -50,3 +50,19 @@ def test_get_video_info_raises_on_invalid_url():
     with patch("compressors.downloader._run_ytdlp_info", side_effect=DownloaderError("URL invalide")):
         with pytest.raises(DownloaderError):
             get_video_info("not-a-url")
+
+
+@pytest.mark.skip(reason="Test d'intégration — nécessite connexion internet et yt-dlp")
+def test_real_download_audio(tmp_path):
+    """Test réel avec une vraie URL courte (< 30s)."""
+    from compressors.downloader import get_video_info, download_media
+    url = "https://www.youtube.com/watch?v=BaW_jenozKc"  # "Me at the zoo" — première vidéo YT
+    info = get_video_info(url)
+    assert info["title"]
+    assert len(info["formats"]) >= 1
+
+    output = tmp_path / "test_output"
+    result = download_media(url=url, mode="audio", format_id="bestaudio/best", output_path=output)
+    assert result.exists()
+    assert result.suffix == ".mp3"
+    assert result.stat().st_size > 10_000  # > 10 Ko
