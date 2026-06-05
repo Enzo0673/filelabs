@@ -2,10 +2,13 @@
 FileLab — Video Downloader
 Wrapper yt-dlp pour téléchargement multi-plateforme (YouTube, TikTok, Instagram, etc.)
 """
+import ipaddress
 import json
+import socket
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 class DownloaderError(Exception):
@@ -15,6 +18,50 @@ class DownloaderError(Exception):
 
 MAX_DURATION_SECONDS = 7200   # 2 heures
 MAX_SIZE_BYTES = 2 * 1024 ** 3  # 2 Go
+
+# Plages IP bloquées pour prévenir le SSRF
+_BLOCKED_NETWORKS = [
+    ipaddress.ip_network("0.0.0.0/8"),
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("100.64.0.0/10"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("::1/128"),
+]
+
+
+def _validate_url(url: str) -> None:
+    """
+    Valide l'URL et bloque les IPs privées/internes (SSRF).
+
+    Raises:
+        DownloaderError: URL invalide ou IP interne détectée
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise DownloaderError("Seules les URLs http:// et https:// sont acceptées.")
+    hostname = parsed.hostname
+    if not hostname:
+        raise DownloaderError("URL invalide : hostname manquant.")
+
+    # Résolution DNS + vérification de chaque adresse retournée
+    try:
+        addrs = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        raise DownloaderError("Impossible de résoudre le nom d'hôte.")
+
+    for addr_info in addrs:
+        ip_str = addr_info[4][0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            continue
+        for network in _BLOCKED_NETWORKS:
+            if ip in network:
+                raise DownloaderError("URL non autorisée.")
 
 
 def _run_ytdlp_info(url: str) -> dict:
@@ -63,6 +110,7 @@ def get_video_info(url: str) -> dict:
     Raises:
         DownloaderError: URL invalide, plateforme non supportée, durée > 2h
     """
+    _validate_url(url)
     raw = _run_ytdlp_info(url)
 
     duration = raw.get("duration") or 0
@@ -122,6 +170,7 @@ def download_media(url: str, mode: str, format_id: str, output_path: Path, on_pr
     Raises:
         DownloaderError: échec du téléchargement
     """
+    _validate_url(url)
     if mode == "audio":
         cmd = [
             sys.executable, "-m", "yt_dlp",

@@ -133,7 +133,7 @@ def _cleanup_outputs():
 app = FastAPI(title="FileLab", version="1.0.0")
 
 # Rate limiting — actif uniquement sur la version en ligne (Render injecte la var RENDER)
-_IS_LOCAL = os.environ.get("RENDER") is None
+_IS_LOCAL = os.environ.get("RENDER") is not None  # True = on est sur Render (production)
 _rate_buckets: dict = {}  # {ip: [timestamp, ...]}
 _RATE_LIMIT = 20          # requêtes max
 _RATE_WINDOW = 60         # par fenêtre de 60s
@@ -143,7 +143,7 @@ _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/")
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     global _RATE_LAST_PURGE
-    if not _IS_LOCAL and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
+    if _IS_LOCAL and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
         ip = request.client.host if request.client else "unknown"
         now = time.time()
         bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
@@ -168,7 +168,7 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    if not _IS_LOCAL:
+    if _IS_LOCAL:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
@@ -226,6 +226,9 @@ MAX_MERGE_FILES = 50
 # Progression vidéo — partagé entre thread compress et endpoint SSE
 _video_progress: dict = {}  # {uid: float 0-100}
 _download_progress: dict[str, float | None] = {}
+# Limite de téléchargements simultanés (évite la saturation CPU/réseau)
+_DOWNLOAD_SEMAPHORE = asyncio.Semaphore(3)
+_DOWNLOAD_TIMEOUT = 600  # 10 minutes max par téléchargement
 
 
 def _validate_uid(uid: str):
@@ -996,7 +999,14 @@ async def video_download(body: _DownloadRequest):
             threading.Thread(target=_cleanup, daemon=True).start()
 
     try:
-        await asyncio.get_event_loop().run_in_executor(None, _run)
+        async with _DOWNLOAD_SEMAPHORE:
+            await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(None, _run),
+                timeout=_DOWNLOAD_TIMEOUT,
+            )
+    except asyncio.TimeoutError:
+        _download_progress[uid] = -1.0
+        raise HTTPException(status_code=408, detail="Téléchargement trop long (timeout 10 min).")
     except DownloaderError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -1285,7 +1295,7 @@ async def health():
 
 @app.get("/status")
 async def status():
-    if not _IS_LOCAL:
+    if _IS_LOCAL:
         raise HTTPException(status_code=404, detail="Not found")
     return {
         "version": "1.1.0",

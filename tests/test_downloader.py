@@ -4,7 +4,7 @@ Lance avec : pytest tests/test_downloader.py -v
 """
 import pytest
 from unittest.mock import patch, MagicMock
-from compressors.downloader import get_video_info, DownloaderError
+from compressors.downloader import get_video_info, DownloaderError, _validate_url
 
 
 def _fake_info():
@@ -24,7 +24,8 @@ def _fake_info():
 
 def test_get_video_info_returns_expected_shape():
     with patch("compressors.downloader._run_ytdlp_info", return_value=_fake_info()):
-        info = get_video_info("https://www.youtube.com/watch?v=test")
+        with patch("compressors.downloader._validate_url"):
+            info = get_video_info("https://www.youtube.com/watch?v=test")
     assert info["title"] == "Test Video"
     assert info["thumbnail"] == "https://example.com/thumb.jpg"
     assert info["duration"] == 120
@@ -42,14 +43,52 @@ def test_get_video_info_raises_on_too_long():
     long_info = _fake_info()
     long_info["duration"] = 7201  # > 2h
     with patch("compressors.downloader._run_ytdlp_info", return_value=long_info):
-        with pytest.raises(DownloaderError, match="2 heures"):
-            get_video_info("https://www.youtube.com/watch?v=test")
+        with patch("compressors.downloader._validate_url"):
+            with pytest.raises(DownloaderError, match="2 heures"):
+                get_video_info("https://www.youtube.com/watch?v=test")
 
 
 def test_get_video_info_raises_on_invalid_url():
     with patch("compressors.downloader._run_ytdlp_info", side_effect=DownloaderError("URL invalide")):
         with pytest.raises(DownloaderError):
             get_video_info("not-a-url")
+
+
+# --- Tests SSRF ---
+
+def test_validate_url_blocks_localhost():
+    import socket
+    with patch("socket.getaddrinfo", return_value=[(None, None, None, None, ("127.0.0.1", 0))]):
+        with pytest.raises(DownloaderError, match="non autorisée"):
+            _validate_url("http://localhost/secret")
+
+
+def test_validate_url_blocks_private_ip():
+    with patch("socket.getaddrinfo", return_value=[(None, None, None, None, ("192.168.1.1", 0))]):
+        with pytest.raises(DownloaderError, match="non autorisée"):
+            _validate_url("http://192.168.1.1/internal")
+
+
+def test_validate_url_blocks_169_254():
+    with patch("socket.getaddrinfo", return_value=[(None, None, None, None, ("169.254.169.254", 0))]):
+        with pytest.raises(DownloaderError, match="non autorisée"):
+            _validate_url("http://169.254.169.254/metadata")
+
+
+def test_validate_url_blocks_non_http_scheme():
+    with pytest.raises(DownloaderError, match="https"):
+        _validate_url("ftp://example.com/video")
+
+
+def test_validate_url_blocks_file_scheme():
+    with pytest.raises(DownloaderError, match="https"):
+        _validate_url("file:///etc/passwd")
+
+
+def test_validate_url_accepts_public_url():
+    with patch("socket.getaddrinfo", return_value=[(None, None, None, None, ("142.250.74.46", 0))]):
+        # Ne doit pas lever d'exception
+        _validate_url("https://www.youtube.com/watch?v=test")
 
 
 @pytest.mark.skip(reason="Test d'intégration — nécessite connexion internet et yt-dlp")
