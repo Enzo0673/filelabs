@@ -304,7 +304,7 @@ async def service_worker():
     content = sw_path.read_text(encoding="utf-8")
     content = re.sub(r"compressit-v\d+", f"compressit-{_STATIC_VERSION}", content)
     from fastapi.responses import Response
-    return Response(content=content, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
+    return Response(content=content, media_type="application/javascript", headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-store"})
 
 
 @app.get("/static/service-worker.js")
@@ -313,7 +313,7 @@ async def service_worker_static():
     content = sw_path.read_text(encoding="utf-8")
     content = re.sub(r"compressit-v\d+", f"compressit-{_STATIC_VERSION}", content)
     from fastapi.responses import Response
-    return Response(content=content, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
+    return Response(content=content, media_type="application/javascript", headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-store"})
 
 
 @app.get("/privacy", response_class=HTMLResponse)
