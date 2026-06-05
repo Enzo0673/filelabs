@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CompressIt — Video Downloader</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <style>
+    .url-input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .url-input {
+      flex: 1;
+      min-width: 280px;
+      height: 42px;
+      padding: 0 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--bg-card);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .url-input:focus { border-color: var(--teal); }
+    .url-input::placeholder { color: var(--text-muted); }
+
+    .video-preview {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--bg-card);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .video-thumb {
+      width: 160px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+    .video-thumb-placeholder {
+      width: 160px;
+      height: 90px;
+      border-radius: 6px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+    .video-meta { flex: 1; }
+    .video-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .video-duration {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      padding: 8px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--teal);
+      border-bottom-color: var(--teal);
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .format-btn {
+      padding: 12px 10px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .format-btn:hover { border-color: var(--teal); }
+    .format-btn.selected {
+      border-color: var(--teal);
+      background: color-mix(in srgb, var(--teal) 10%, var(--bg-card));
+      color: var(--teal);
+    }
+    .format-btn .fmt-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+    .mp3-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+    .mp3-icon { font-size: 36px; }
+    .mp3-info { flex: 1; }
+    .mp3-info strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .mp3-info span { font-size: 12px; color: var(--text-muted); }
+
+    .progress-wrap {
+      background: var(--bg-card);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .progress-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .progress-bar-track {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--teal);
+      border-radius: 4px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+    .progress-pct {
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--teal);
+      margin-top: 6px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header class="tool-header">
+    <a href="/" class="back-btn" aria-label="Retour">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="tool-header-icon">📥</div>
+    <div>
+      <h1 class="tool-header-title">Video Downloader</h1>
+      <p class="tool-header-desc">Téléchargez une vidéo en MP4 ou MP3 depuis YouTube, TikTok, Instagram et plus</p>
+    </div>
+  </header>
+
+  <main class="tool-main">
+
+    <!-- Étape 1 : saisie URL -->
+    <section class="tool-section" id="step-url">
+      <div class="section-title">URL de la vidéo</div>
+      <div class="url-input-wrap">
+        <input
+          type="url"
+          id="urlInput"
+          class="url-input"
+          placeholder="https://www.youtube.com/watch?v=..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="btn-primary" id="analyzeBtn">Analyser</button>
+      </div>
+      <div id="analyzeError" class="error-msg hidden"></div>
+    </section>
+
+    <!-- Étape 2 : choix du format (masqué jusqu'à l'analyse) -->
+    <section class="tool-section hidden" id="step-format">
+
+      <!-- Aperçu de la vidéo -->
+      <div class="video-preview" id="videoPreview">
+        <div class="video-thumb-placeholder" id="thumbPlaceholder">🎬</div>
+        <img id="videoThumb" class="video-thumb hidden" alt="Miniature"/>
+        <div class="video-meta">
+          <div class="video-title" id="videoTitle">—</div>
+          <div class="video-duration" id="videoDuration">—</div>
+        </div>
+      </div>
+
+      <!-- Onglets MP4 / MP3 -->
+      <div class="tabs">
+        <button class="tab-btn active" id="tabMp4" onclick="switchTab('mp4')">🎬 MP4</button>
+        <button class="tab-btn" id="tabMp3" onclick="switchTab('mp3')">🎵 MP3</button>
+      </div>
+
+      <!-- Contenu onglet MP4 -->
+      <div id="panelMp4">
+        <div class="section-title" style="font-size:13px;margin-bottom:10px">Choisissez la résolution</div>
+        <div class="format-grid" id="formatGrid"></div>
+      </div>
+
+      <!-- Contenu onglet MP3 -->
+      <div id="panelMp3" class="hidden">
+        <div class="mp3-card">
+          <div class="mp3-icon">🎵</div>
+          <div class="mp3-info">
+            <strong>Audio MP3 — 320k</strong>
+            <span>Meilleure qualité audio, piste extraite de la vidéo</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="downloadBtn" style="width:100%">Télécharger</button>
+      <div id="downloadError" class="error-msg hidden" style="margin-top:10px"></div>
+    </section>
+
+    <!-- Barre de progression -->
+    <section class="tool-section hidden" id="step-progress">
+      <div class="progress-wrap">
+        <div class="progress-label" id="progressLabel">Téléchargement en cours…</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+    </section>
+
+    <!-- Bouton de sauvegarde finale -->
+    <section class="tool-section hidden" id="step-done">
+      <div class="success-msg" style="margin-bottom:16px">✅ Téléchargement terminé !</div>
+      <a id="saveBtn" class="btn-primary" style="display:inline-block;text-decoration:none;text-align:center;width:100%">
+        💾 Sauvegarder le fichier
+      </a>
+      <button class="btn-secondary" id="restartBtn" style="width:100%;margin-top:10px">
+        ↩ Télécharger une autre vidéo
+      </button>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  let currentInfo = null;
+  let selectedFormatId = "bestvideo+bestaudio/best";
+  let currentTab = "mp4";
+
+  const urlInput    = document.getElementById("urlInput");
+  const analyzeBtn  = document.getElementById("analyzeBtn");
+  const analyzeError= document.getElementById("analyzeError");
+  const stepUrl     = document.getElementById("step-url");
+  const stepFormat  = document.getElementById("step-format");
+  const stepProgress= document.getElementById("step-progress");
+  const stepDone    = document.getElementById("step-done");
+  const videoTitle  = document.getElementById("videoTitle");
+  const videoDuration = document.getElementById("videoDuration");
+  const videoThumb  = document.getElementById("videoThumb");
+  const thumbPlaceholder = document.getElementById("thumbPlaceholder");
+  const formatGrid  = document.getElementById("formatGrid");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const downloadError = document.getElementById("downloadError");
+  const progressFill = document.getElementById("progressFill");
+  const progressPct  = document.getElementById("progressPct");
+  const progressLabel= document.getElementById("progressLabel");
+  const saveBtn      = document.getElementById("saveBtn");
+  const restartBtn   = document.getElementById("restartBtn");
+
+  function fmtDuration(secs) {
+    if (!secs) return "";
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${m.toString().padStart(2,"0")}min`;
+    return `${m}:${s.toString().padStart(2,"0")}`;
+  }
+
+  function showError(el, msg) {
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+  function hideError(el) { el.classList.add("hidden"); }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabMp4").classList.toggle("active", tab === "mp4");
+    document.getElementById("tabMp3").classList.toggle("active", tab === "mp3");
+    document.getElementById("panelMp4").classList.toggle("hidden", tab !== "mp4");
+    document.getElementById("panelMp3").classList.toggle("hidden", tab !== "mp3");
+  }
+
+  function buildFormatGrid(formats) {
+    formatGrid.innerHTML = "";
+    formats.forEach((fmt, i) => {
+      const btn = document.createElement("button");
+      btn.className = "format-btn" + (i === 0 ? " selected" : "");
+      btn.dataset.formatId = fmt.format_id;
+      btn.innerHTML = `<span class="fmt-icon">🎬</span>${fmt.label}`;
+      btn.onclick = () => {
+        document.querySelectorAll(".format-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedFormatId = fmt.format_id;
+      };
+      formatGrid.appendChild(btn);
+    });
+    selectedFormatId = formats[0]?.format_id ?? "bestvideo+bestaudio/best";
+  }
+
+  analyzeBtn.addEventListener("click", async () => {
+    const url = urlInput.value.trim();
+    if (!url) { showError(analyzeError, "Veuillez coller une URL."); return; }
+    hideError(analyzeError);
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = "Analyse…";
+
+    try {
+      const resp = await fetch("/video/download/info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showError(analyzeError, data.detail || "Erreur lors de l'analyse."); return; }
+
+      currentInfo = data;
+
+      videoTitle.textContent = data.title;
+      videoDuration.textContent = fmtDuration(data.duration);
+      if (data.thumbnail) {
+        videoThumb.src = data.thumbnail;
+        videoThumb.onload = () => {
+          videoThumb.classList.remove("hidden");
+          thumbPlaceholder.classList.add("hidden");
+        };
+      }
+      buildFormatGrid(data.formats);
+      stepFormat.classList.remove("hidden");
+      stepFormat.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    } catch(e) {
+      showError(analyzeError, "Erreur de connexion. Réessayez.");
+    } finally {
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = "Analyser";
+    }
+  });
+
+  urlInput.addEventListener("keydown", e => { if (e.key === "Enter") analyzeBtn.click(); });
+
+  downloadBtn.addEventListener("click", async () => {
+    const url = urlInput.value.trim();
+    const mode = currentTab === "mp3" ? "audio" : "video";
+    const format_id = mode === "audio" ? "bestaudio/best" : selectedFormatId;
+    hideError(downloadError);
+
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = "Démarrage…";
+    stepProgress.classList.remove("hidden");
+    progressFill.style.width = "0%";
+    progressPct.textContent = "0%";
+
+    let downloadId = null;
+    try {
+      const resp = await fetch("/video/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, mode, format_id }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        showError(downloadError, data.detail || "Erreur lors du téléchargement.");
+        stepProgress.classList.add("hidden");
+        return;
+      }
+      downloadId = data.download_id;
+    } catch(e) {
+      showError(downloadError, "Erreur de connexion.");
+      stepProgress.classList.add("hidden");
+      downloadBtn.disabled = false;
+      downloadBtn.textContent = "Télécharger";
+      return;
+    }
+
+    await new Promise(resolve => {
+      const es = new EventSource(`/video/download/progress/${downloadId}`);
+      es.onmessage = e => {
+        if (e.data === "error") {
+          es.close();
+          showError(downloadError, "Le téléchargement a échoué.");
+          stepProgress.classList.add("hidden");
+          downloadBtn.disabled = false;
+          downloadBtn.textContent = "Télécharger";
+          resolve();
+          return;
+        }
+        const pct = parseFloat(e.data);
+        if (!isNaN(pct)) {
+          progressFill.style.width = pct + "%";
+          progressPct.textContent = Math.round(pct) + "%";
+          progressLabel.textContent = pct >= 100 ? "Finalisation…" : "Téléchargement en cours…";
+        }
+        if (pct >= 100) { es.close(); resolve(); }
+      };
+      es.onerror = () => { es.close(); resolve(); };
+    });
+
+    const ext = mode === "audio" ? "mp3" : "mp4";
+    const filename = (currentInfo?.title || "video").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "_") + `.${ext}`;
+    saveBtn.href = `/download/${downloadId}`;
+    saveBtn.download = filename;
+
+    stepProgress.classList.add("hidden");
+    stepDone.classList.remove("hidden");
+    stepDone.scrollIntoView({ behavior: "smooth" });
+    downloadBtn.disabled = false;
+    downloadBtn.textContent = "Télécharger";
+  });
+
+  restartBtn.addEventListener("click", () => {
+    urlInput.value = "";
+    currentInfo = null;
+    selectedFormatId = "bestvideo+bestaudio/best";
+    stepFormat.classList.add("hidden");
+    stepProgress.classList.add("hidden");
+    stepDone.classList.add("hidden");
+    videoThumb.classList.add("hidden");
+    thumbPlaceholder.classList.remove("hidden");
+    hideError(analyzeError);
+    hideError(downloadError);
+    switchTab("mp4");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+</script>
+</body>
+</html>
