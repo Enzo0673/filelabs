@@ -1,12 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
 
+icon_file = ['static/icons/icon.ico'] if sys.platform == 'win32' else []
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
     datas=[('static', 'static'), ('compressors', 'compressors')],
-    hiddenimports=['uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto', 'uvicorn.protocols', 'uvicorn.protocols.http', 'uvicorn.protocols.http.auto', 'uvicorn.protocols.websockets', 'uvicorn.protocols.websockets.auto', 'uvicorn.lifespan', 'uvicorn.lifespan.on', 'fastapi', 'anyio', 'anyio._backends._asyncio', 'starlette', 'starlette.staticfiles', 'PIL', 'PIL.Image', 'pikepdf', 'zstandard', 'brotli'],
+    hiddenimports=[
+        'uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto',
+        'uvicorn.protocols', 'uvicorn.protocols.http', 'uvicorn.protocols.http.auto',
+        'uvicorn.protocols.websockets', 'uvicorn.protocols.websockets.auto',
+        'uvicorn.lifespan', 'uvicorn.lifespan.on',
+        'fastapi', 'anyio', 'anyio._backends._asyncio',
+        'starlette', 'starlette.staticfiles',
+        'PIL', 'PIL.Image',
+        'pikepdf', 'zstandard', 'brotli',
+        'yt_dlp', 'yt_dlp.utils', 'yt_dlp.extractor',
+        'ipaddress',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -22,7 +35,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='CompressIt',
+    name='FileLab',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,5 +48,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['static\\icons\\icon.ico'],
+    icon=icon_file,
 )
