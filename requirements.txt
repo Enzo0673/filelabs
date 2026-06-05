@@ -28,6 +28,9 @@ pdf2image>=1.17.0
 # Requiert FFmpeg installé : https://ffmpeg.org/download.html
 ffmpeg-python>=0.2.0
 
+# Téléchargement vidéo multi-plateforme (YouTube, TikTok, Instagram, etc.)
+yt-dlp
+
 # Compression archives — algorithmes rapides (optionnels mais recommandés)
 zstandard>=0.22.0
 brotli>=1.1.0
