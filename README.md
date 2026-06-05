@@ -2,11 +2,11 @@
 
 **Outils fichiers gratuits, 100% locaux — images, PDF, vidéos, archives.**
 
-[![Release](https://img.shields.io/github/v/release/Enzo0673/compressit?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=0D9488)](https://github.com/Enzo0673/compressit/releases/latest)
+[![Release](https://img.shields.io/github/v/release/Enzo0673/filelab?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=0D9488)](https://github.com/Enzo0673/filelab/releases/latest)
 [![License: MIT](https://img.shields.io/badge/licence-MIT-green?style=for-the-badge)](LICENSE)
-[![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/compressit/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/compressit/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/filelab/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/filelab/actions)
 
-> 🖥️ **[Essayer en ligne](https://compressit-w0ro.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/compressit/releases/latest)**
+> 🖥️ **[Essayer en ligne](https://filelab.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/filelab/releases/latest)**
 
 ![Aperçu FileLab](docs/screenshot.png)
 
@@ -16,9 +16,9 @@
 
 | Plateforme | Lien |
 |---|---|
-| **Windows** | [FileLab.exe](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt.exe) |
-| **macOS** | [FileLab-macOS.zip](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-macOS.zip) |
-| **Linux** | [FileLab-Linux.tar.gz](https://github.com/Enzo0673/compressit/releases/latest/download/CompressIt-Linux.tar.gz) |
+| **Windows** | [FileLab.exe](https://github.com/Enzo0673/filelab/releases/latest/download/FileLab.exe) |
+| **macOS** | [FileLab-macOS.zip](https://github.com/Enzo0673/filelab/releases/latest/download/FileLab-macOS.zip) |
+| **Linux** | [FileLab-Linux.tar.gz](https://github.com/Enzo0673/filelab/releases/latest/download/FileLab-Linux.tar.gz) |
 
 Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur. **Aucune installation requise.**
 
@@ -58,9 +58,10 @@ Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur
 | Recadrer | Rogner une image |
 | Rotation / Flip | Faire pivoter ou retourner |
 
-### Vidéo
+### Vidéo (3 outils)
 - **Compresser vidéo** — MP4, MOV, AVI, MKV, WebM (codecs H.264 / H.265 / VP9), progression en temps réel
-- **Éditer vidéo** — Découper (trim) et redimensionner
+- **Éditer vidéo** — Découper (trim), redimensionner, fusionner et ajouter du texte
+- **Video Downloader** — Télécharger une vidéo depuis YouTube, TikTok, Instagram, etc. en MP4 (toutes résolutions disponibles) ou MP3 (320k)
 
 ### Archives
 - **Compresser archive** — ZIP, 7z, RAR, TAR, GZ, BZ2, ZST (algorithmes zstd, lzma, gzip, brotli)
@@ -92,8 +93,8 @@ Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs s
 ### Démarrage
 
 ```bash
-git clone https://github.com/Enzo0673/compressit.git
-cd compressit
+git clone https://github.com/Enzo0673/filelab.git
+cd filelab
 pip install -r requirements.txt
 py main.py        # Windows
 python main.py    # Linux / Mac
@@ -105,9 +106,9 @@ python main.py    # Linux / Mac
 pip install pyinstaller
 
 # Placer les binaires FFmpeg + Poppler dans bin/
-# (voir compressit.spec pour les noms attendus)
+# (voir filelab.spec pour les noms attendus)
 
-pyinstaller compressit.spec
+pyinstaller filelab.spec
 # → dist/FileLab.exe (Windows) ou dist/FileLab (Mac/Linux)
 ```
 
@@ -122,7 +123,7 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 | Backend | Python 3, FastAPI, Uvicorn |
 | Images | Pillow |
 | PDF | pikepdf, pdf2image, pdfminer.six |
-| Vidéo | ffmpeg-python + FFmpeg (SSE progress) |
+| Vidéo | ffmpeg-python + FFmpeg (SSE progress), yt-dlp |
 | Archives | zstandard, brotli, lzma, gzip |
 | Frontend | HTML / CSS / JavaScript vanilla |
 | Aperçu PDF | pdf.js (servi en local) |
@@ -136,11 +137,14 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 
 Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Risk Rating** avec les [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) (`performing-web-application-vulnerability-triage` + `performing-web-application-penetration-test`).
 
-13 vulnérabilités identifiées et corrigées sur 2 passes d'audit (commits `f41bd80`, `d6ea1a5`, `d3fa307`) :
+16 vulnérabilités identifiées et corrigées sur 3 passes d'audit :
 
 | Sévérité | Vulnérabilité | CWE | OWASP 2021 |
 |---|---|---|---|
+| 🔴 Critique | SSRF sur le Video Downloader (IPs internes accessibles) | CWE-918 | A10 - SSRF |
 | 🔴 Critique | Injection `font_color` → FFmpeg drawtext | CWE-78 | A03 - Injection |
+| 🟠 Élevé | Rate limiting inversé (actif en local, désactivé en prod) | CWE-16 | A05 - Misconfiguration |
+| 🟠 Élevé | Pas de limite de téléchargements concurrents ni de timeout | CWE-400 | A04 - Insecure Design |
 | 🟠 Élevé | Path traversal sur `/tool/{name}` | CWE-22 | A01 - Broken Access Control |
 | 🟠 Élevé | Bug `download_id` Office to PDF | CWE-706 | A04 - Insecure Design |
 | 🟠 Élevé | Rate limiter fuite mémoire (multi-worker) | CWE-400 | A05 - Misconfiguration |
@@ -156,6 +160,9 @@ Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Ri
 
 Mesures en place :
 
+- **Protection SSRF** — validation schéma + résolution DNS avec blocage de toutes les plages IP privées/internes
+- **Rate limiting** correct en production (Render) : 20 req/min par IP sur les endpoints de traitement
+- **Limite de concurrence** — max 3 téléchargements simultanés, timeout 10 min
 - CORS restreint à `localhost`
 - Validation stricte des paramètres côté serveur (whitelists codec, DPI, qualité, couleur…)
 - Protection path traversal sur les téléchargements et les routes outils
