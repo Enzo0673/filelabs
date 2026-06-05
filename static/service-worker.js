@@ -37,6 +37,7 @@ const STATIC_ASSETS = [
   '/tool/compress-video',
   '/tool/compress-archive',
   '/tool/video-downloader',
+  '/tool/image-downloader',
 ];
 
 // Installation : mise en cache de tous les assets
@@ -69,7 +70,8 @@ self.addEventListener('fetch', event => {
     url.pathname.startsWith('/health') ||
     url.pathname.startsWith('/pdf/') ||
     url.pathname.startsWith('/image/') ||
-    url.pathname.startsWith('/video/')
+    url.pathname.startsWith('/video/') ||
+    url.pathname.startsWith('/media/')
   ) {
     return;
   }

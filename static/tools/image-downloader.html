@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FileLab — Image Downloader</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <style>
+    .url-input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .url-input {
+      flex: 1;
+      min-width: 280px;
+      height: 42px;
+      padding: 0 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--bg-card);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .url-input:focus { border-color: var(--teal); }
+    .url-input::placeholder { color: var(--text-muted); }
+
+    .images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .img-item {
+      position: relative;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      background: var(--bg);
+    }
+    .img-item:hover { border-color: var(--teal); }
+    .img-item.selected {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 30%, transparent);
+    }
+    .img-item img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+    .img-item .img-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      background: var(--bg);
+    }
+    .img-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .img-item.selected .img-check { opacity: 1; }
+    .img-check svg { width: 13px; height: 13px; stroke: white; }
+    .img-index {
+      position: absolute;
+      bottom: 4px;
+      left: 6px;
+      font-size: 11px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    .select-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .select-bar button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .select-bar button:hover { border-color: var(--teal); color: var(--teal); }
+    .select-count {
+      margin-left: auto;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header class="tool-header">
+    <a href="/" class="back-btn" aria-label="Retour">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="tool-header-icon">🖼️</div>
+    <div>
+      <h1 class="tool-header-title">Image Downloader</h1>
+      <p class="tool-header-desc">Téléchargez des images depuis Instagram, Pinterest, Twitter/X, Facebook et plus</p>
+    </div>
+  </header>
+
+  <main class="tool-main">
+
+    <!-- Étape 1 : saisie URL -->
+    <section class="tool-section" id="step-url">
+      <div class="section-title">URL du post</div>
+      <div class="url-input-wrap">
+        <input
+          type="url"
+          id="urlInput"
+          class="url-input"
+          placeholder="https://www.instagram.com/p/..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="btn-primary" id="analyzeBtn">Analyser</button>
+      </div>
+      <div id="analyzeError" class="error-msg hidden"></div>
+    </section>
+
+    <!-- Étape 2 : sélection des images -->
+    <section class="tool-section hidden" id="step-select">
+      <div class="section-title" id="postTitle" style="margin-bottom:14px">—</div>
+
+      <div class="select-bar">
+        <button id="selectAllBtn">Tout sélectionner</button>
+        <button id="deselectAllBtn">Tout désélectionner</button>
+        <span class="select-count" id="selectCount">0 sélectionnée(s)</span>
+      </div>
+
+      <div class="images-grid" id="imagesGrid"></div>
+
+      <button class="btn-primary" id="downloadBtn" style="width:100%" disabled>Télécharger la sélection</button>
+      <div id="downloadError" class="error-msg hidden" style="margin-top:10px"></div>
+    </section>
+
+    <!-- Résultat -->
+    <section class="tool-section hidden" id="step-done">
+      <div class="success-msg" style="margin-bottom:16px">✅ Images téléchargées !</div>
+      <a id="saveBtn" class="btn-primary" style="display:inline-block;text-decoration:none;text-align:center;width:100%">
+        💾 Sauvegarder
+      </a>
+      <button class="btn-secondary" id="restartBtn" style="width:100%;margin-top:10px">
+        ↩ Télécharger depuis une autre URL
+      </button>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  let currentImages = [];
+  let selectedIndices = new Set();
+
+  const urlInput     = document.getElementById('urlInput');
+  const analyzeBtn   = document.getElementById('analyzeBtn');
+  const analyzeError = document.getElementById('analyzeError');
+  const stepUrl      = document.getElementById('step-url');
+  const stepSelect   = document.getElementById('step-select');
+  const stepDone     = document.getElementById('step-done');
+  const postTitle    = document.getElementById('postTitle');
+  const imagesGrid   = document.getElementById('imagesGrid');
+  const downloadBtn  = document.getElementById('downloadBtn');
+  const downloadError= document.getElementById('downloadError');
+  const saveBtn      = document.getElementById('saveBtn');
+  const restartBtn   = document.getElementById('restartBtn');
+  const selectAllBtn = document.getElementById('selectAllBtn');
+  const deselectAllBtn = document.getElementById('deselectAllBtn');
+  const selectCount  = document.getElementById('selectCount');
+
+  function showError(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
+  function hideError(el) { el.classList.add('hidden'); }
+
+  function updateSelectCount() {
+    const n = selectedIndices.size;
+    selectCount.textContent = `${n} sélectionnée(s)`;
+    downloadBtn.disabled = n === 0;
+  }
+
+  function buildGrid(images) {
+    imagesGrid.innerHTML = '';
+    images.forEach((img, i) => {
+      const item = document.createElement('div');
+      item.className = 'img-item';
+      item.dataset.index = i;
+
+      const thumb = document.createElement('img');
+      thumb.src = img.thumbnail;
+      thumb.alt = `Image ${i + 1}`;
+      thumb.onerror = () => {
+        thumb.replaceWith(Object.assign(document.createElement('div'), {
+          className: 'img-placeholder',
+          textContent: '🖼️',
+        }));
+      };
+
+      const check = document.createElement('div');
+      check.className = 'img-check';
+      check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+      const idx = document.createElement('div');
+      idx.className = 'img-index';
+      idx.textContent = i + 1;
+
+      item.appendChild(thumb);
+      item.appendChild(check);
+      item.appendChild(idx);
+
+      item.addEventListener('click', () => {
+        if (selectedIndices.has(i)) {
+          selectedIndices.delete(i);
+          item.classList.remove('selected');
+        } else {
+          selectedIndices.add(i);
+          item.classList.add('selected');
+        }
+        updateSelectCount();
+      });
+
+      imagesGrid.appendChild(item);
+    });
+  }
+
+  selectAllBtn.addEventListener('click', () => {
+    selectedIndices = new Set(currentImages.map((_, i) => i));
+    document.querySelectorAll('.img-item').forEach(el => el.classList.add('selected'));
+    updateSelectCount();
+  });
+
+  deselectAllBtn.addEventListener('click', () => {
+    selectedIndices.clear();
+    document.querySelectorAll('.img-item').forEach(el => el.classList.remove('selected'));
+    updateSelectCount();
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if (!url) { showError(analyzeError, 'Veuillez coller une URL.'); return; }
+    hideError(analyzeError);
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analyse…';
+
+    try {
+      const resp = await fetch('/media/info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showError(analyzeError, data.detail || "Erreur lors de l'analyse."); return; }
+
+      currentImages = data.images;
+      selectedIndices.clear();
+      postTitle.textContent = data.title;
+      buildGrid(currentImages);
+      updateSelectCount();
+      stepSelect.classList.remove('hidden');
+      stepSelect.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (e) {
+      showError(analyzeError, 'Erreur de connexion. Réessayez.');
+    } finally {
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = 'Analyser';
+    }
+  });
+
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') analyzeBtn.click(); });
+
+  downloadBtn.addEventListener('click', async () => {
+    if (selectedIndices.size === 0) return;
+    hideError(downloadError);
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = 'Téléchargement…';
+
+    try {
+      const resp = await fetch('/media/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput.value.trim(), indices: [...selectedIndices] }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showError(downloadError, data.detail || 'Erreur lors du téléchargement.'); return; }
+
+      saveBtn.href = `/download/${data.download_id}`;
+      saveBtn.download = data.output_filename;
+      stepDone.classList.remove('hidden');
+      stepDone.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (e) {
+      showError(downloadError, 'Erreur de connexion.');
+    } finally {
+      downloadBtn.disabled = false;
+      downloadBtn.textContent = 'Télécharger la sélection';
+    }
+  });
+
+  restartBtn.addEventListener('click', () => {
+    urlInput.value = '';
+    currentImages = [];
+    selectedIndices.clear();
+    stepSelect.classList.add('hidden');
+    stepDone.classList.add('hidden');
+    imagesGrid.innerHTML = '';
+    hideError(analyzeError);
+    hideError(downloadError);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>

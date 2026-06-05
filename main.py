@@ -43,6 +43,7 @@ from compressors.pdf_tools import (
 )
 from compressors.image_tools import resize_image, convert_image, crop_image, rotate_image
 from compressors.downloader import get_video_info, download_media, DownloaderError
+from compressors.image_downloader import get_media_info, download_images
 
 # Résolution des chemins compatible PyInstaller (--onefile extrait dans sys._MEIPASS)
 if getattr(sys, "frozen", False):
@@ -1047,6 +1048,73 @@ async def video_download_progress(uid: str):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ---- Image Downloader — Analyse URL ----
+
+class _MediaInfoRequest(BaseModel):
+    url: str
+
+
+@app.post("/media/info")
+async def media_info(body: _MediaInfoRequest):
+    url = body.url.strip()
+    if not url:
+        raise HTTPException(status_code=422, detail="URL manquante.")
+    try:
+        info = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: get_media_info(url)
+        )
+    except DownloaderError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de l'analyse de l'URL.")
+    return info
+
+
+# ---- Image Downloader — Téléchargement ----
+
+class _MediaDownloadRequest(BaseModel):
+    url: str
+    indices: list[int]
+
+
+@app.post("/media/download")
+async def media_download(body: _MediaDownloadRequest):
+    url = body.url.strip()
+    if not url:
+        raise HTTPException(status_code=422, detail="URL manquante.")
+    if not body.indices:
+        raise HTTPException(status_code=422, detail="Aucune image sélectionnée.")
+    if len(body.indices) > 50:
+        raise HTTPException(status_code=422, detail="Maximum 50 images.")
+
+    uid = uuid.uuid4().hex
+    work_dir = OUTPUT_DIR / f"{uid}_imgs"
+
+    try:
+        result = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: download_images(url, body.indices, work_dir)
+        )
+    except DownloaderError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du téléchargement.")
+
+    # Déplacer le fichier final dans OUTPUT_DIR sous uid_output.*
+    final_path = OUTPUT_DIR / f"{uid}_output{result.suffix}"
+    result.rename(final_path)
+    # Nettoyer le dossier de travail
+    try:
+        import shutil as _sh
+        _sh.rmtree(work_dir, ignore_errors=True)
+    except Exception:
+        pass
+
+    output_filename = "images.zip" if result.suffix == ".zip" else f"image{result.suffix}"
+    return {"success": True, "download_id": uid, "output_filename": output_filename}
 
 
 # ---- Découper vidéo ----
