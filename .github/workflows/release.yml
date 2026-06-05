@@ -49,13 +49,13 @@ jobs:
           Copy-Item "$($libBin.FullName)/pdfinfo.exe" bin/
 
       - name: Build .exe
-        run: pyinstaller CompressIt.spec
+        run: pyinstaller compressit.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CompressIt-Windows
-          path: dist/CompressIt.exe
+          name: FileLab-Windows
+          path: dist/FileLab.exe
 
   # ─────────────────────────────────────────
   # macOS — binaire Unix
@@ -85,18 +85,18 @@ jobs:
           cp $(which pdfinfo) bin/pdfinfo
 
       - name: Build macOS app
-        run: pyinstaller CompressIt.spec
+        run: pyinstaller compressit.spec
 
       - name: Zip app
         run: |
           cd dist
-          zip -r CompressIt-macOS.zip CompressIt
+          zip -r FileLab-macOS.zip FileLab
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CompressIt-macOS
-          path: dist/CompressIt-macOS.zip
+          name: FileLab-macOS
+          path: dist/FileLab-macOS.zip
 
   # ─────────────────────────────────────────
   # Linux — binaire
@@ -130,18 +130,18 @@ jobs:
           cp $(which pdfinfo) bin/pdfinfo
 
       - name: Build Linux binary
-        run: pyinstaller CompressIt.spec
+        run: pyinstaller compressit.spec
 
       - name: Tar binary
         run: |
           cd dist
-          tar -czf CompressIt-Linux.tar.gz CompressIt
+          tar -czf FileLab-Linux.tar.gz FileLab
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CompressIt-Linux
-          path: dist/CompressIt-Linux.tar.gz
+          name: FileLab-Linux
+          path: dist/FileLab-Linux.tar.gz
 
   # ─────────────────────────────────────────
   # Release GitHub — publie les 3 builds
@@ -158,25 +158,25 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "CompressIt ${{ github.ref_name }}"
+          name: "FileLab ${{ github.ref_name }}"
           body: |
-            ## CompressIt ${{ github.ref_name }}
+            ## FileLab ${{ github.ref_name }}
 
             ### Téléchargement
 
             | Plateforme | Fichier |
             |---|---|
-            | Windows | `CompressIt.exe` — double-clic, aucune installation requise |
-            | macOS | `CompressIt-macOS.zip` — dézipper et lancer |
-            | Linux | `CompressIt-Linux.tar.gz` — extraire et `chmod +x CompressIt` |
+            | Windows | `FileLab.exe` — double-clic, aucune installation requise |
+            | macOS | `FileLab-macOS.zip` — dézipper et lancer |
+            | Linux | `FileLab-Linux.tar.gz` — extraire et `chmod +x FileLab` |
 
             ### Utilisation
             Lancez l'exécutable → l'application s'ouvre automatiquement dans votre navigateur sur `http://localhost:8000`.
 
             **100% local** — vos fichiers ne quittent jamais votre machine.
           files: |
-            artifacts/CompressIt-Windows/CompressIt.exe
-            artifacts/CompressIt-macOS/CompressIt-macOS.zip
-            artifacts/CompressIt-Linux/CompressIt-Linux.tar.gz
+            artifacts/FileLab-Windows/FileLab.exe
+            artifacts/FileLab-macOS/FileLab-macOS.zip
+            artifacts/FileLab-Linux/FileLab-Linux.tar.gz
           draft: false
           prerelease: false
