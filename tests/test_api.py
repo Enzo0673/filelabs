@@ -167,3 +167,69 @@ def test_compress_too_large(client):
         files={"file": ("big.jpg", io.BytesIO(oversized), "image/jpeg")},
     )
     assert r.status_code == 413
+
+
+# ---- /video/download/info ----
+
+def test_download_info_invalid_body(client):
+    r = client.post("/video/download/info", json={})
+    assert r.status_code == 422  # champ url manquant
+
+
+def test_download_info_mocked(client):
+    from unittest.mock import patch
+    fake_info = {
+        "title": "Test",
+        "thumbnail": "https://example.com/t.jpg",
+        "duration": 60,
+        "formats": [{"format_id": "bestvideo+bestaudio/best", "label": "Meilleure qualité", "ext": "mp4"}],
+    }
+    with patch("main.get_video_info", return_value=fake_info):
+        r = client.post("/video/download/info", json={"url": "https://www.youtube.com/watch?v=test"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["title"] == "Test"
+    assert len(body["formats"]) >= 1
+
+
+def test_download_info_downloader_error(client):
+    from unittest.mock import patch
+    from compressors.downloader import DownloaderError
+    with patch("main.get_video_info", side_effect=DownloaderError("URL invalide")):
+        r = client.post("/video/download/info", json={"url": "not-a-url"})
+    assert r.status_code == 400
+    assert "URL invalide" in r.json()["detail"]
+
+
+# ---- /video/download ----
+
+def test_video_download_invalid_mode(client):
+    r = client.post("/video/download", json={
+        "url": "https://www.youtube.com/watch?v=test",
+        "mode": "invalid",
+        "format_id": "22",
+    })
+    assert r.status_code == 422
+
+
+def test_video_download_mocked(client):
+    from unittest.mock import patch
+    from pathlib import Path
+    import tempfile, os
+
+    def fake_download(url, mode, format_id, output_path, on_progress):
+        real_out = Path(str(output_path) + ".mp4")
+        real_out.write_bytes(b"fake mp4 content")
+        if on_progress:
+            on_progress(100.0)
+        return real_out
+
+    with patch("main.download_media", side_effect=fake_download):
+        r = client.post("/video/download", json={
+            "url": "https://www.youtube.com/watch?v=test",
+            "mode": "video",
+            "format_id": "22",
+        })
+    assert r.status_code == 200
+    body = r.json()
+    assert "download_id" in body

@@ -25,6 +25,7 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import StreamingResponse
+from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -41,6 +42,7 @@ from compressors.pdf_tools import (
     delete_pages, unlock_pdf, protect_pdf, repair_pdf, extract_pdf_text,
 )
 from compressors.image_tools import resize_image, convert_image, crop_image, rotate_image
+from compressors.downloader import get_video_info, download_media, DownloaderError
 
 # Résolution des chemins compatible PyInstaller (--onefile extrait dans sys._MEIPASS)
 if getattr(sys, "frozen", False):
@@ -223,6 +225,7 @@ MAX_MERGE_FILES = 50
 
 # Progression vidéo — partagé entre thread compress et endpoint SSE
 _video_progress: dict = {}  # {uid: float 0-100}
+_download_progress: dict[str, float | None] = {}
 
 
 def _validate_uid(uid: str):
@@ -921,6 +924,119 @@ async def office_to_pdf(file: UploadFile = File(...)):
         if output_dir.exists():
             import shutil as _shutil
             _shutil.rmtree(output_dir, ignore_errors=True)
+
+
+# ---- Video Downloader — Analyse URL ----
+
+class _DownloadInfoRequest(BaseModel):
+    url: str
+
+
+@app.post("/video/download/info")
+async def video_download_info(body: _DownloadInfoRequest):
+    url = body.url.strip()
+    if not url:
+        raise HTTPException(status_code=422, detail="URL manquante.")
+    try:
+        info = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: get_video_info(url)
+        )
+    except DownloaderError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de l'analyse de l'URL.")
+    return info
+
+
+# ---- Video Downloader — Lancer le téléchargement ----
+
+class _DownloadRequest(BaseModel):
+    url: str
+    mode: str       # "video" ou "audio"
+    format_id: str
+
+
+@app.post("/video/download")
+async def video_download(body: _DownloadRequest):
+    if body.mode not in ("video", "audio"):
+        raise HTTPException(status_code=422, detail="mode doit être 'video' ou 'audio'.")
+    url = body.url.strip()
+    if not url:
+        raise HTTPException(status_code=422, detail="URL manquante.")
+
+    uid = uuid.uuid4().hex
+    ext = ".mp3" if body.mode == "audio" else ".mp4"
+    output_base = OUTPUT_DIR / f"{uid}_output"
+
+    _download_progress[uid] = 0.0
+
+    def _run():
+        def on_progress(pct: float):
+            _download_progress[uid] = pct
+        try:
+            result = download_media(
+                url=url,
+                mode=body.mode,
+                format_id=body.format_id,
+                output_path=output_base,
+                on_progress=on_progress,
+            )
+            final_path = OUTPUT_DIR / f"{uid}_output{result.suffix}"
+            if result != final_path:
+                result.rename(final_path)
+        except DownloaderError as e:
+            _download_progress[uid] = -1.0
+            raise
+        finally:
+            import threading
+            def _cleanup():
+                import time; time.sleep(60)
+                _download_progress.pop(uid, None)
+            threading.Thread(target=_cleanup, daemon=True).start()
+
+    try:
+        await asyncio.get_event_loop().run_in_executor(None, _run)
+    except DownloaderError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du téléchargement.")
+
+    output_filename = f"video{ext}" if body.mode == "video" else "audio.mp3"
+    return {"success": True, "download_id": uid, "output_filename": output_filename}
+
+
+# ---- Video Downloader — SSE Progress ----
+
+@app.get("/video/download/progress/{uid}")
+async def video_download_progress(uid: str):
+    _validate_uid(uid)
+
+    async def event_stream():
+        wait_iters = 0
+        while _download_progress.get(uid) is None and wait_iters < 25:
+            await asyncio.sleep(0.4)
+            wait_iters += 1
+
+        while True:
+            pct = _download_progress.get(uid)
+            if pct is None:
+                yield "data: 100\n\n"
+                break
+            if pct == -1.0:
+                yield "data: error\n\n"
+                break
+            yield f"data: {pct:.1f}\n\n"
+            if pct >= 100.0:
+                break
+            await asyncio.sleep(0.4)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 # ---- Découper vidéo ----
