@@ -1,4 +1,4 @@
-const CACHE_NAME = 'compressit-v7';
+const CACHE_NAME = 'compressit-v8';
 const STATIC_ASSETS = [
   '/',
   '/static/style.css',
@@ -36,6 +36,7 @@ const STATIC_ASSETS = [
   '/tool/rotate-image',
   '/tool/compress-video',
   '/tool/compress-archive',
+  '/tool/video-downloader',
 ];
 
 // Installation : mise en cache de tous les assets
