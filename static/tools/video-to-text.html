@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vidéo vers Texte — FileLab</title>
+  <meta name="description" content="Transcrire automatiquement une vidéo ou un audio en texte — outil gratuit, sans inscription, 100% local." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://filelabs.onrender.com/tool/video-to-text" />
+  <meta property="og:title" content="Vidéo vers Texte — FileLab" />
+  <meta property="og:description" content="Transcrire automatiquement une vidéo ou un audio en texte gratuitement, sans compte." />
+  <meta property="og:image" content="https://filelabs.onrender.com/static/icons/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
+  <style>
+    .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .opt-group { display:flex; flex-direction:column; gap:6px; }
+    .opt-label { font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+    .opt-select { background:var(--surface-2); border:1.5px solid var(--border); border-radius:8px; padding:8px 12px; font-size:0.9rem; color:var(--text); cursor:pointer; }
+    .opt-select:focus { outline:none; border-color:var(--primary); }
+
+    .transcript-box { background:var(--surface-2); border:1.5px solid var(--border); border-radius:12px; padding:20px; font-size:0.92rem; color:var(--text); white-space:pre-wrap; word-break:break-word; line-height:1.75; max-height:420px; overflow-y:auto; }
+    .transcript-box:empty::before { content:"Transcription vide"; color:var(--text-muted); }
+
+    .srt-block { background:var(--surface-2); border:1.5px solid var(--border); border-radius:12px; padding:16px; font-size:0.85rem; font-family:monospace; white-space:pre; overflow-x:auto; max-height:360px; overflow-y:auto; color:var(--text); }
+
+    .tabs { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:20px; }
+    .tab-btn { background:none; border:none; padding:10px 18px; font-size:0.88rem; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s, border-color .15s; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .tab-panel { display:none; } .tab-panel.active { display:block; }
+
+    .action-row { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+    .btn-action { background:var(--primary); color:#fff; border:none; border-radius:8px; padding:9px 18px; font-size:0.88rem; font-weight:600; cursor:pointer; transition:opacity .15s; }
+    .btn-action:hover { opacity:.85; }
+    .btn-action.secondary { background:var(--surface-2); color:var(--text); border:1.5px solid var(--border); }
+    .btn-action.secondary:hover { border-color:var(--primary); color:var(--primary); }
+    .copy-confirm { font-size:0.85rem; color:var(--success); display:none; }
+
+    .info-note { background:var(--surface-2); border-left:3px solid var(--primary); border-radius:0 8px 8px 0; padding:10px 14px; font-size:0.82rem; color:var(--text-muted); margin-bottom:16px; line-height:1.5; }
+
+    .seg-row { display:grid; grid-template-columns:120px 1fr; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.88rem; }
+    .seg-row:last-child { border-bottom:none; }
+    .seg-time { color:var(--primary); font-variant-numeric:tabular-nums; font-size:0.82rem; font-weight:600; padding-top:2px; }
+    .seg-text { color:var(--text); line-height:1.55; }
+    .segments-list { max-height:400px; overflow-y:auto; }
+
+    .stat-badge { display:inline-flex; align-items:center; gap:5px; background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:0.82rem; color:var(--text-muted); }
+    .stats-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+
+    @media (max-width:520px) { .options-grid { grid-template-columns:1fr; } }
+  </style>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0D9488"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">FileLab</span></a></div>
+      <a href="/" class="btn-back">← Tous les outils</a>
+      <button class="btn-theme" id="btnTheme" title="Thème sombre/clair" onclick="window.__theme.toggle(); updateThemeIcon()"><svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg><svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+    </header>
+
+    <div class="tool-hero">
+      <span class="tool-hero-icon">🎙️</span>
+      <div>
+        <h1 class="tool-hero-title">Vidéo vers Texte</h1>
+        <p class="tool-hero-sub">Transcription automatique de la parole avec horodatage — export .txt et .srt</p>
+      </div>
+    </div>
+
+    <main class="main">
+      <!-- DROP ZONE -->
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 36H40" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="drop-title">Glissez votre vidéo ou audio ici</p>
+        <p class="drop-sub">MP4, MKV, MOV, AVI, WEBM, MP3, WAV, M4A…</p>
+        <label class="btn-browse" for="fileInput">Parcourir</label>
+        <input type="file" id="fileInput" hidden accept="video/*,audio/*,.mp4,.mkv,.mov,.avi,.webm,.mp3,.wav,.m4a,.ogg,.flac" />
+      </div>
+
+      <!-- OPTIONS (visible après sélection fichier) -->
+      <div id="optionsPanel" hidden style="margin-bottom:16px">
+        <div class="info-note" id="fileInfo"></div>
+        <div class="options-grid">
+          <div class="opt-group">
+            <label class="opt-label" for="selLang">Langue</label>
+            <select class="opt-select" id="selLang">
+              <option value="auto">Détection automatique</option>
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+              <option value="it">Italiano</option>
+              <option value="pt">Português</option>
+              <option value="nl">Nederlands</option>
+              <option value="ar">العربية</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+          <div class="opt-group">
+            <label class="opt-label" for="selModel">Modèle</label>
+            <select class="opt-select" id="selModel">
+              <option value="base">Base — rapide</option>
+              <option value="small" selected>Small — équilibré</option>
+              <option value="medium">Medium — précis</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-action" id="btnTranscribe" style="width:100%">
+          <span id="btnLabel">Lancer la transcription</span>
+        </button>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="progress-panel" id="progressPanel" hidden>
+        <div class="progress-spinner"></div>
+        <p class="progress-label" id="progressLabel">Transcription en cours…</p>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">La première exécution peut prendre plus longtemps (chargement du modèle)</p>
+      </div>
+
+      <!-- RESULT -->
+      <div class="result-panel" id="resultPanel" hidden>
+        <div class="result-badge" style="background:linear-gradient(135deg,#0D9488,#0f766e)">✓ Transcription terminée</div>
+
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tabText">Texte</button>
+          <button class="tab-btn" data-tab="tabSegments">Segments</button>
+          <button class="tab-btn" data-tab="tabSrt">SRT</button>
+        </div>
+
+        <!-- TAB: Texte -->
+        <div class="tab-panel active" id="tabText">
+          <div class="action-row">
+            <button class="btn-action" id="btnCopyText">Copier</button>
+            <button class="btn-action secondary" id="btnDownloadTxt">Télécharger .txt</button>
+            <span class="copy-confirm" id="copyConfirmText">✓ Copié !</span>
+          </div>
+          <div class="transcript-box" id="transcriptText"></div>
+        </div>
+
+        <!-- TAB: Segments horodatés -->
+        <div class="tab-panel" id="tabSegments">
+          <div class="action-row">
+            <button class="btn-action secondary" id="btnDownloadSegTxt">Télécharger .txt horodaté</button>
+          </div>
+          <div class="segments-list" id="segmentsList"></div>
+        </div>
+
+        <!-- TAB: SRT -->
+        <div class="tab-panel" id="tabSrt">
+          <div class="action-row">
+            <button class="btn-action" id="btnCopySrt">Copier SRT</button>
+            <button class="btn-action secondary" id="btnDownloadSrt">Télécharger .srt</button>
+            <span class="copy-confirm" id="copyConfirmSrt">✓ Copié !</span>
+          </div>
+          <div class="srt-block" id="srtContent"></div>
+        </div>
+
+        <button class="btn-reset" id="btnReset" style="margin-top:20px">Nouveau fichier</button>
+      </div>
+
+      <!-- ERROR -->
+      <div class="error-panel" id="errorPanel" hidden>
+        <div class="error-icon">!</div>
+        <p class="error-msg" id="errorMsg"></p>
+        <button class="btn-reset" id="btnErrorReset">Réessayer</button>
+      </div>
+    </main>
+
+    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+  </div>
+
+  <script src="/static/utils.js"></script>
+  <script>
+    let transcriptData = null;
+    let currentFile = null;
+
+    const dropZone      = document.getElementById('dropZone');
+    const fileInput     = document.getElementById('fileInput');
+    const optionsPanel  = document.getElementById('optionsPanel');
+    const progressPanel = document.getElementById('progressPanel');
+    const resultPanel   = document.getElementById('resultPanel');
+    const errorPanel    = document.getElementById('errorPanel');
+    const allPanels     = [dropZone, optionsPanel, progressPanel, resultPanel, errorPanel];
+
+    function showPanel(...show) {
+      allPanels.forEach(p => { p.hidden = !show.includes(p); });
+    }
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
+    });
+    dropZone.addEventListener('click', e => { if (!e.target.closest('label')) fileInput.click(); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) selectFile(fileInput.files[0]); });
+
+    function selectFile(f) {
+      currentFile = f;
+      const sizeMB = (f.size / 1024 / 1024).toFixed(1);
+      document.getElementById('fileInfo').textContent = `📁 ${f.name}  ·  ${sizeMB} MB`;
+      showPanel(dropZone, optionsPanel);
+    }
+
+    document.getElementById('btnTranscribe').addEventListener('click', transcribe);
+
+    async function transcribe() {
+      if (!currentFile) return;
+      showPanel(progressPanel);
+      document.getElementById('progressLabel').textContent = 'Transcription en cours…';
+
+      const fd = new FormData();
+      fd.append('file', currentFile);
+      fd.append('language', document.getElementById('selLang').value);
+      fd.append('model', document.getElementById('selModel').value);
+
+      try {
+        const res = await fetch('/video/to-text', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        transcriptData = data;
+        renderResult(data);
+        showPanel(resultPanel);
+      } catch (err) {
+        document.getElementById('errorMsg').textContent = err.message;
+        showPanel(errorPanel);
+      }
+    }
+
+    function fmtTime(secs) {
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function fmtSrtTime(secs) {
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      const ms = Math.round((secs % 1) * 1000);
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
+    }
+
+    function buildSrt(segments) {
+      return segments.map((seg, i) =>
+        `${i + 1}\n${fmtSrtTime(seg.start)} --> ${fmtSrtTime(seg.end)}\n${seg.text.trim()}`
+      ).join('\n\n');
+    }
+
+    function renderResult(data) {
+      // Stats
+      const dur = data.duration ? `${fmtTime(data.duration)}` : '—';
+      const lang = data.language || '—';
+      const words = data.word_count || 0;
+      document.getElementById('statsRow').innerHTML =
+        `<span class="stat-badge">🌐 ${lang}</span>` +
+        `<span class="stat-badge">⏱ ${dur}</span>` +
+        `<span class="stat-badge">📝 ${words} mots</span>` +
+        `<span class="stat-badge">🔠 ${(data.text || '').length} caractères</span>`;
+
+      // Texte brut
+      document.getElementById('transcriptText').textContent = data.text || '';
+
+      // Segments
+      const list = document.getElementById('segmentsList');
+      list.innerHTML = '';
+      (data.segments || []).forEach(seg => {
+        const row = document.createElement('div');
+        row.className = 'seg-row';
+        row.innerHTML = `<div class="seg-time">${fmtTime(seg.start)} → ${fmtTime(seg.end)}</div><div class="seg-text">${seg.text.trim()}</div>`;
+        list.appendChild(row);
+      });
+
+      // SRT
+      const srt = buildSrt(data.segments || []);
+      document.getElementById('srtContent').textContent = srt;
+    }
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Copy/download helpers
+    function copyText(text, confirmId) {
+      navigator.clipboard.writeText(text).then(() => {
+        const el = document.getElementById(confirmId);
+        el.style.display = 'inline';
+        setTimeout(() => el.style.display = 'none', 2000);
+      });
+    }
+
+    function downloadText(content, filename) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.getElementById('btnCopyText').addEventListener('click', () => {
+      copyText(transcriptData?.text || '', 'copyConfirmText');
+    });
+
+    document.getElementById('btnDownloadTxt').addEventListener('click', () => {
+      const stem = currentFile ? currentFile.name.replace(/\.[^.]+$/, '') : 'transcription';
+      downloadText(transcriptData?.text || '', stem + '_transcription.txt');
+    });
+
+    document.getElementById('btnDownloadSegTxt').addEventListener('click', () => {
+      const lines = (transcriptData?.segments || []).map(s =>
+        `[${fmtTime(s.start)} → ${fmtTime(s.end)}]  ${s.text.trim()}`
+      ).join('\n');
+      const stem = currentFile ? currentFile.name.replace(/\.[^.]+$/, '') : 'transcription';
+      downloadText(lines, stem + '_horodatee.txt');
+    });
+
+    document.getElementById('btnCopySrt').addEventListener('click', () => {
+      const srt = buildSrt(transcriptData?.segments || []);
+      copyText(srt, 'copyConfirmSrt');
+    });
+
+    document.getElementById('btnDownloadSrt').addEventListener('click', () => {
+      const srt = buildSrt(transcriptData?.segments || []);
+      const stem = currentFile ? currentFile.name.replace(/\.[^.]+$/, '') : 'transcription';
+      const blob = new Blob([srt], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = stem + '.srt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    function reset() {
+      transcriptData = null; currentFile = null;
+      fileInput.value = '';
+      showPanel(dropZone);
+    }
+    document.getElementById('btnReset').addEventListener('click', reset);
+    document.getElementById('btnErrorReset').addEventListener('click', () => {
+      showPanel(dropZone, optionsPanel);
+    });
+
+    showPanel(dropZone);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
+  </script>
+  <script src="/static/banner.js"></script>
+</body>
+</html>

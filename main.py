@@ -44,6 +44,7 @@ from compressors.pdf_tools import (
 from compressors.image_tools import resize_image, convert_image, crop_image, rotate_image
 from compressors.downloader import get_video_info, download_media, DownloaderError
 from compressors.image_downloader import get_media_info, download_images
+from compressors.transcribe import transcribe_media, WHISPER_AVAILABLE
 
 # Résolution des chemins compatible PyInstaller (--onefile extrait dans sys._MEIPASS)
 if getattr(sys, "frozen", False):
@@ -1250,6 +1251,56 @@ async def video_add_text(
     except Exception as e:
         logger.error("%s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Erreur lors de l'ajout du texte")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Transcription vidéo/audio → texte ----
+_VALID_WHISPER_MODELS = {"tiny", "base", "small", "medium"}
+_VALID_MEDIA_EXTS = {
+    ".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v", ".flv",
+    ".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aac",
+}
+
+@app.get("/video/transcribe/status")
+async def transcribe_status():
+    return {"available": WHISPER_AVAILABLE}
+
+@app.post("/video/to-text")
+async def video_to_text(
+    file: UploadFile = File(...),
+    language: str = Form("auto"),
+    model: str = Form("small"),
+):
+    if not WHISPER_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail="faster-whisper n'est pas installé sur ce serveur. Lancez : pip install faster-whisper"
+        )
+    if model not in _VALID_WHISPER_MODELS:
+        raise HTTPException(status_code=400, detail="Modèle invalide.")
+    ext = Path(file.filename or "media.mp4").suffix.lower()
+    if ext not in _VALID_MEDIA_EXTS:
+        raise HTTPException(status_code=400, detail="Format non supporté.")
+    # Langue : "auto" → None côté transcription
+    if language not in ("auto", "fr", "en", "es", "de", "it", "pt", "nl", "ar", "zh", "ja"):
+        raise HTTPException(status_code=400, detail="Langue invalide.")
+
+    uid = uuid.uuid4().hex
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["video"])
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: transcribe_media(input_path, language=language, model_size=model),
+        )
+        return result
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de la transcription")
     finally:
         input_path.unlink(missing_ok=True)
 
