@@ -1,5 +1,5 @@
 """
-FileLab - Serveur FastAPI local
+FileLabs - Serveur FastAPI local
 Lance avec : py main.py  (ou  uvicorn main:app --reload)
 Accès : http://localhost:8000
 """
@@ -132,7 +132,7 @@ def _cleanup_outputs():
             except Exception:
                 pass
 
-app = FastAPI(title="FileLab", version="1.0.0")
+app = FastAPI(title="FileLabs", version="1.0.0")
 
 # Rate limiting — actif uniquement sur la version en ligne (Render injecte la var RENDER)
 _IS_LOCAL = os.environ.get("RENDER") is not None  # True = on est sur Render (production)
@@ -307,7 +307,7 @@ async def favicon():
 async def service_worker():
     sw_path = BASE_DIR / "static" / "service-worker.js"
     content = sw_path.read_text(encoding="utf-8")
-    content = re.sub(r"filelab-v\d+", f"filelab-{_STATIC_VERSION}", content)
+    content = re.sub(r"filelabs-v\d+", f"filelabs-{_STATIC_VERSION}", content)
     from fastapi.responses import Response
     return Response(content=content, media_type="application/javascript", headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-store"})
 
@@ -316,7 +316,7 @@ async def service_worker():
 async def service_worker_static():
     sw_path = BASE_DIR / "static" / "service-worker.js"
     content = sw_path.read_text(encoding="utf-8")
-    content = re.sub(r"filelab-v\d+", f"filelab-{_STATIC_VERSION}", content)
+    content = re.sub(r"filelabs-v\d+", f"filelabs-{_STATIC_VERSION}", content)
     from fastapi.responses import Response
     return Response(content=content, media_type="application/javascript", headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-store"})
 
@@ -1437,7 +1437,7 @@ if __name__ == "__main__":
     url = f"http://localhost:{port}"
 
     print("\n" + "="*50)
-    print("  FileLab — Serveur local")
+    print("  FileLabs — Serveur local")
     print(f"  Ouverture automatique sur : {url}")
     print("="*50 + "\n")
 

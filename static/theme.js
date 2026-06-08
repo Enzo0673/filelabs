@@ -1,9 +1,9 @@
 /* =========================================================
-   FileLab — theme.js
+   FileLabs — theme.js
    Dark mode : appliqué avant le premier rendu pour éviter le flash
    ========================================================= */
 (function () {
-  const STORAGE_KEY = 'filelab-theme';
+  const STORAGE_KEY = 'filelabs-theme';
 
   function getPreferred() {
     const saved = localStorage.getItem(STORAGE_KEY);

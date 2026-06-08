@@ -1,4 +1,4 @@
-const CACHE_NAME = 'filelab-v1';
+const CACHE_NAME = 'filelabs-v1';
 const STATIC_ASSETS = [
   '/',
   '/static/style.css',

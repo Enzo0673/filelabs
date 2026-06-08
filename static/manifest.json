@@ -1,6 +1,6 @@
 {
-  "name": "FileLab",
-  "short_name": "FileLab",
+  "name": "FileLabs",
+  "short_name": "FileLabs",
   "description": "Compression locale de fichiers — images, vidéos, PDF, archives",
   "start_url": "/",
   "display": "standalone",

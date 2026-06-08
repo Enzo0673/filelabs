@@ -1,5 +1,5 @@
 /* =========================================================
-   FileLab — home.js
+   FileLabs — home.js
    - Drag & drop global : affiche les outils compatibles avec le fichier déposé
    - Historique des outils récents (localStorage)
    ========================================================= */
@@ -172,7 +172,7 @@
   }
 
   // ── Historique des outils récents ──────────────────────────────────────────
-  const HISTORY_KEY = 'filelab-history';
+  const HISTORY_KEY = 'filelabs-history';
   const MAX_HISTORY = 5;
 
   function getHistory() {

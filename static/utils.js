@@ -1,4 +1,4 @@
-/* FileLab — utils.js : fonctions partagées entre tous les outils */
+/* FileLabs — utils.js : fonctions partagées entre tous les outils */
 
 const FILE_SIZE_LIMITS = {
   pdf:     32 * 1024 * 1024,
