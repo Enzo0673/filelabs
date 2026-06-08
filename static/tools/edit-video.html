@@ -949,13 +949,57 @@ function makeClipEl(clipData, leftPct, widthPct){
     el.appendChild(h);
   });
 
-  // Select on click
+  // Select + drag on click on clip body
   el.addEventListener('mousedown',e=>{
     if(e.target.classList.contains('tl-handle')) return;
     if(S.tool==='razor'){ razorCut(e); return; }
+
+    // Sélectionner
     S.selectedClip=clipData;
     vidTrack.querySelectorAll('.tl-clip').forEach(c=>c.classList.remove('selected'));
     el.classList.add('selected');
+
+    // Drag
+    const startX=e.clientX;
+    const totalPx=vidTrack.offsetWidth*S.zoom;
+    const origStart=clipData.srcStart;
+    const origEnd=clipData.srcEnd;
+    const clipDur=origEnd-origStart;
+
+    function onDragMove(ev){
+      const dx=ev.clientX-startX;
+      const dt=(dx/totalPx)*S.dur;
+      let newStart=Math.max(0, origStart+dt);
+      let newEnd=newStart+clipDur;
+      // Ne pas dépasser la fin de la vidéo source
+      if(newEnd>S.dur){ newEnd=S.dur; newStart=newEnd-clipDur; }
+      clipData.srcStart=newStart;
+      clipData.srcEnd=newEnd;
+      clipData.dur=clipDur;
+      // Mettre à jour position visuelle du clip directement
+      el.style.left=(newStart/S.dur*100)+'%';
+      el.style.width=(clipDur/S.dur*100)+'%';
+      // Sync playhead et preview
+      video.currentTime=newStart;
+      updateSeekUI();
+      updateInOutOverlay();
+    }
+
+    function onDragEnd(){
+      el.classList.remove('dragging');
+      document.removeEventListener('mousemove',onDragMove);
+      document.removeEventListener('mouseup',onDragEnd);
+      renderSegments();
+    }
+
+    document.addEventListener('mousemove', ev=>{
+      // Ne déclencher le drag qu'après un mouvement de 4px pour éviter les faux clics
+      if(Math.abs(ev.clientX-startX)>4){
+        el.classList.add('dragging');
+        onDragMove(ev);
+      }
+    });
+    document.addEventListener('mouseup', onDragEnd);
   });
 
   return el;
@@ -1126,8 +1170,17 @@ document.getElementById('toolRazor').addEventListener('click',()=>setTool('razor
 document.getElementById('btnCut').addEventListener('click', rippleDelete);
 
 function rippleDelete(){
-  const inP=S.inPoint, outP=S.outPoint;
-  if(outP-inP < 0.05){ flashCutBtn(); return; }
+  // Si pas de zone In/Out définie (ou trop courte) → couper au playhead
+  const hasSelection = (S.outPoint - S.inPoint) > 0.05;
+  const inP  = hasSelection ? S.inPoint  : video.currentTime;
+  const outP = hasSelection ? S.outPoint : video.currentTime;
+
+  if(!hasSelection){
+    // Juste un cut au playhead (razor sans changer d'outil)
+    razorCutAt(video.currentTime);
+    flashCutBtn();
+    return;
+  }
 
   const result=[];
   S.clips.forEach(clip=>{
@@ -1187,6 +1240,10 @@ function setTool(t){
 
 function razorCut(e){
   const t=timeFromX(e.clientX);
+  razorCutAt(t);
+}
+
+function razorCutAt(t){
   // Trouver le clip sous le curseur
   const clip=S.clips.find(c=>t>=c.srcStart && t<=c.srcEnd);
   if(!clip||t-clip.srcStart<0.05||clip.srcEnd-t<0.05) return;
