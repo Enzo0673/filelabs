@@ -49,7 +49,7 @@ jobs:
           Copy-Item "$($libBin.FullName)/pdfinfo.exe" bin/
 
       - name: Build .exe
-        run: pyinstaller compressit.spec
+        run: python scripts/build.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -85,7 +85,7 @@ jobs:
           cp $(which pdfinfo) bin/pdfinfo
 
       - name: Build macOS app
-        run: pyinstaller compressit.spec
+        run: python scripts/build.py
 
       - name: Zip app
         run: |
@@ -130,7 +130,7 @@ jobs:
           cp $(which pdfinfo) bin/pdfinfo
 
       - name: Build Linux binary
-        run: pyinstaller compressit.spec
+        run: python scripts/build.py
 
       - name: Tar binary
         run: |
