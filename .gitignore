@@ -6,10 +6,12 @@ __pycache__/
 .Python
 *.egg-info/
 .eggs/
+.pytest_cache/
 
 # PyInstaller
 build/
 dist/
+*.spec
 
 # Binaires FFmpeg/Poppler (à placer manuellement avant le build local)
 bin/*.exe
@@ -26,6 +28,7 @@ env/
 # Fichiers temporaires de l'appli
 uploads/
 outputs/
+*.log
 
 # IDE
 .vscode/
@@ -37,4 +40,7 @@ Thumbs.db
 
 # Scripts temporaires générés
 _patch_*.py
-compressit.spec
+
+# Artefacts Claude Code locaux
+.claude/
+CLAUDE-FABLE-5.md
