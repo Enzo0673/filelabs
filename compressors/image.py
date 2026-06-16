@@ -5,7 +5,6 @@ Formats supportés : JPEG, PNG, WebP, GIF, BMP, TIFF
 
 from pathlib import Path
 from PIL import Image
-import io
 
 # Profils de qualité par niveau
 QUALITY_PROFILES = {
@@ -36,24 +35,32 @@ def compress_image(
     max_width: int = None,
 ) -> Path:
     profile = QUALITY_PROFILES.get(level, QUALITY_PROFILES["standard"])
-    img = Image.open(input_path)
-
-    # Conversion RGBA → RGB si besoin pour JPEG
     target_fmt = _resolve_format(input_path, output_format)
-    if target_fmt == "JPEG" and img.mode in ("RGBA", "P", "LA"):
-        background = Image.new("RGB", img.size, (255, 255, 255))
-        if img.mode == "P":
-            img = img.convert("RGBA")
-        background.paste(img, mask=img.split()[3] if img.mode == "RGBA" else None)
-        img = background
-    elif img.mode == "P":
-        img = img.convert("RGBA")
 
-    # Redimensionnement si max_width défini (garde le ratio)
-    if max_width and img.width > max_width:
-        ratio = max_width / img.width
-        new_height = int(img.height * ratio)
-        img = img.resize((max_width, new_height), Image.LANCZOS)
+    # Context manager : garantit la fermeture du handle (évite WinError 32 à l'unlink)
+    with Image.open(input_path) as src:
+        # Conversion RGBA → RGB si besoin pour JPEG
+        if target_fmt == "JPEG" and src.mode in ("RGBA", "P", "LA"):
+            background = Image.new("RGB", src.size, (255, 255, 255))
+            if src.mode == "P":
+                src_converted = src.convert("RGBA")
+            else:
+                src_converted = src
+            background.paste(
+                src_converted,
+                mask=src_converted.split()[3] if src_converted.mode == "RGBA" else None
+            )
+            img = background
+        elif src.mode == "P":
+            img = src.convert("RGBA")
+        else:
+            img = src.copy()  # détache de l'objet source pour permettre la fermeture
+
+        # Redimensionnement si max_width défini (garde le ratio)
+        if max_width and img.width > max_width:
+            ratio = max_width / img.width
+            new_height = int(img.height * ratio)
+            img = img.resize((max_width, new_height), Image.LANCZOS)
 
     # Déterminer la qualité
     q = quality if quality is not None else profile["jpeg"]

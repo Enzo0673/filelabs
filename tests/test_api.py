@@ -169,6 +169,30 @@ def test_compress_too_large(client):
     assert r.status_code == 413
 
 
+# ---- Validation contenu (magic bytes) ----
+
+def test_compress_rejette_pdf_renomme_en_jpg(client):
+    """Un fichier PDF renommé .jpg doit être rejeté avec 415 (contenu incohérent)."""
+    fake_jpg = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n" + b"x" * 1000  # contenu PDF, extension .jpg
+    r = client.post(
+        "/compress",
+        data={"level": "standard"},
+        files={"file": ("malicious.jpg", io.BytesIO(fake_jpg), "image/jpeg")},
+    )
+    assert r.status_code == 415
+
+
+def test_compress_rejette_jpg_renomme_en_pdf(client):
+    """Un JPEG renommé .pdf doit être rejeté avec 415."""
+    jpeg = _make_jpeg_bytes()
+    r = client.post(
+        "/compress",
+        data={"level": "standard"},
+        files={"file": ("fake.pdf", io.BytesIO(jpeg), "application/pdf")},
+    )
+    assert r.status_code == 415
+
+
 # ---- /video/download/info ----
 
 def test_download_info_invalid_body(client):

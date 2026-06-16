@@ -239,24 +239,33 @@ def _validate_uid(uid: str):
 
 
 async def _save_upload(file: UploadFile, dest: Path, max_bytes: int = MAX_SIZE_DEFAULT):
-    """Écrit un UploadFile sur disque en chunks async, lève HTTPException si trop gros."""
+    """Écrit un UploadFile sur disque en chunks async, lève HTTPException si trop gros.
+
+    Note Windows : on referme toujours le handle avant d'unlink, sinon WinError 32.
+    """
     size = 0
+    too_large = False
+    write_failed: Exception | None = None
     try:
         with open(dest, "wb") as f_out:
             while chunk := await file.read(1024 * 1024):
                 size += len(chunk)
                 if size > max_bytes:
-                    dest.unlink(missing_ok=True)
-                    raise HTTPException(
-                        status_code=413,
-                        detail=f"Fichier trop volumineux (max {max_bytes // 1024 // 1024} MB)"
-                    )
+                    too_large = True
+                    break
                 f_out.write(chunk)
-    except HTTPException:
-        raise
     except Exception as e:
+        write_failed = e
+    # Le handle est fermé ici → l'unlink ne peut plus échouer pour cause de lock
+    if too_large:
         dest.unlink(missing_ok=True)
-        logger.error("Erreur écriture upload: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=413,
+            detail=f"Fichier trop volumineux (max {max_bytes // 1024 // 1024} MB)"
+        )
+    if write_failed is not None:
+        dest.unlink(missing_ok=True)
+        logger.error("Erreur écriture upload: %s", write_failed, exc_info=True)
         raise HTTPException(status_code=500, detail="Erreur lors de la réception du fichier")
 
 
@@ -278,6 +287,74 @@ def detect_type(filename: str, mime: str) -> str:
         if mime in mimes:
             return cat
     return "archive"  # fallback générique
+
+
+# Signatures binaires (magic bytes) pour vérifier que le contenu correspond
+# au type déclaré. Empêche un .pdf renommé .jpg de passer à un compresseur d'image.
+_MAGIC_SIGNATURES: dict[str, tuple[bytes, ...]] = {
+    "image": (
+        b"\xff\xd8\xff",            # JPEG
+        b"\x89PNG\r\n\x1a\n",       # PNG
+        b"GIF87a", b"GIF89a",       # GIF
+        b"BM",                      # BMP
+        b"II*\x00", b"MM\x00*",     # TIFF
+        # WebP: "RIFF" + 4 bytes size + "WEBP" → on vérifie en deux étapes
+    ),
+    "pdf":   (b"%PDF-",),
+    "video": (
+        b"\x1aE\xdf\xa3",           # Matroska/WebM
+        b"RIFF",                    # AVI (RIFF header — checked further later)
+        # MP4/MOV: "ftyp" box appears at offset 4-7, vérifié séparément
+    ),
+    "archive": (
+        b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08",   # ZIP family (zip, docx, xlsx)
+        b"7z\xbc\xaf'\x1c",                            # 7z
+        b"Rar!\x1a\x07\x00", b"Rar!\x1a\x07\x01\x00",  # RAR
+        b"\x1f\x8b",                                    # gzip
+        b"BZh",                                         # bzip2
+        b"\xfd7zXZ\x00",                                # xz
+        b"(\xb5/\xfd",                                  # zstd
+        b"ustar",                                       # tar (offset 257, traité \u00e0 part)
+    ),
+}
+
+
+def _verify_magic_bytes(path: Path, expected_type: str) -> bool:
+    """Vérifie que le début du fichier correspond au type attendu.
+
+    Strict pour image/pdf/video (signatures fiables à l'offset 0).
+    Permissif pour archive (formats trop hétérogènes : tar à offset 257, lz4 etc).
+    Retourne True si OK ou si on ne peut pas conclure (best-effort).
+    """
+    if expected_type == "archive":
+        return True  # le compresseur valide lui-même
+
+    try:
+        with open(path, "rb") as f:
+            head = f.read(16)
+    except OSError:
+        return False
+    if not head:
+        return False
+
+    # WebP : "RIFF" + 4 bytes + "WEBP"
+    if expected_type == "image" and head[:4] == b"RIFF":
+        try:
+            with open(path, "rb") as f:
+                head12 = f.read(12)
+            if head12[8:12] == b"WEBP":
+                return True
+        except OSError:
+            pass
+
+    # MP4/MOV : "ftyp" box à l'offset 4
+    if expected_type == "video" and head[4:8] == b"ftyp":
+        return True
+
+    sigs = _MAGIC_SIGNATURES.get(expected_type)
+    if not sigs:
+        return True
+    return any(head.startswith(s) for s in sigs)
 
 @app.get("/manifest.json")
 async def manifest():
@@ -394,25 +471,17 @@ async def compress(
     file_type = detect_type(file.filename, mime)
     max_bytes = MAX_SIZE.get(file_type, MAX_SIZE_DEFAULT)
 
-    # Écriture async chunk par chunk + vérification taille
-    size = 0
-    try:
-        with open(input_path, "wb") as f_out:
-            while chunk := await file.read(1024 * 1024):  # 1 MB chunks
-                size += len(chunk)
-                if size > max_bytes:
-                    input_path.unlink(missing_ok=True)
-                    raise HTTPException(
-                        status_code=413,
-                        detail=f"Fichier trop volumineux (max {max_bytes // 1024 // 1024} MB pour ce type)"
-                    )
-                f_out.write(chunk)
-    except HTTPException:
-        raise
-    except Exception as e:
+    # Écriture async chunk par chunk + vérification taille (handle fermé proprement avant unlink)
+    await _save_upload(file, input_path, max_bytes)
+
+    # Vérification magic bytes : empêche un fichier renommé (ex: .pdf en .jpg)
+    # de passer aux compresseurs et provoquer un comportement imprévu
+    if not _verify_magic_bytes(input_path, file_type):
         input_path.unlink(missing_ok=True)
-        logger.error("%s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Erreur lors du traitement du fichier")
+        raise HTTPException(
+            status_code=415,
+            detail=f"Le contenu du fichier ne correspond pas à un fichier {file_type} valide"
+        )
 
     original_size = input_path.stat().st_size
 
