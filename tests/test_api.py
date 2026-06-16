@@ -218,7 +218,7 @@ def test_download_info_mocked(client):
 
 def test_download_info_downloader_error(client):
     from unittest.mock import patch
-    from compressors.downloader import DownloaderError
+    from compressors.media.downloader import DownloaderError
     with patch("main.get_video_info", side_effect=DownloaderError("URL invalide")):
         r = client.post("/video/download/info", json={"url": "not-a-url"})
     assert r.status_code == 400

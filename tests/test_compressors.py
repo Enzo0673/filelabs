@@ -29,7 +29,7 @@ def _make_pdf(n_pages=2) -> bytes:
 
 # ─── _parse_ranges ─────────────────────────────────────────────────────────────
 
-from compressors.pdf_tools import _parse_ranges
+from compressors.pdf.tools import _parse_ranges
 
 def test_parse_ranges_single():
     assert _parse_ranges("1", 5) == [[0]]
@@ -55,7 +55,7 @@ def test_parse_ranges_bad_format():
 
 # ─── watermark_pdf (échappement) ───────────────────────────────────────────────
 
-from compressors.pdf_tools import watermark_pdf
+from compressors.pdf.tools import watermark_pdf
 
 def test_watermark_special_chars():
     """Les parenthèses et backslashes ne doivent pas crasher."""
@@ -80,7 +80,7 @@ def test_watermark_long_text_truncated():
 
 # ─── rotate_pdf_map (validation angles) ───────────────────────────────────────
 
-from compressors.pdf_tools import rotate_pdf_map
+from compressors.pdf.tools import rotate_pdf_map
 
 def test_rotate_valid_angle():
     with tempfile.TemporaryDirectory() as d:
@@ -131,7 +131,7 @@ def test_zip_path_traversal_detection():
 
 # ─── extract_pdf_text ─────────────────────────────────────────────────────────
 
-from compressors.pdf_tools import extract_pdf_text
+from compressors.pdf.tools import extract_pdf_text
 
 def test_extract_text_empty_pdf():
     """Un PDF sans texte doit être détecté comme scanné."""

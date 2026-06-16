@@ -32,19 +32,24 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from compressors.image import compress_image
-from compressors.pdf import compress_pdf
-from compressors.video import compress_video, trim_video, resize_video, merge_videos, add_text_video, FFMPEG_AVAILABLE as _FFMPEG_AVAILABLE
-from compressors.archive import compress_archive
-from compressors.pdf_tools import (
+from compressors.image import (
+    compress_image,
+    resize_image, convert_image, crop_image, rotate_image,
+    get_media_info, download_images,
+)
+from compressors.pdf import (
+    compress_pdf,
     merge_pdfs, split_pdf, pdf_to_jpg, jpg_to_pdf,
     rotate_pdf, rotate_pdf_map, watermark_pdf, add_page_numbers,
     delete_pages, unlock_pdf, protect_pdf, repair_pdf, extract_pdf_text,
 )
-from compressors.image_tools import resize_image, convert_image, crop_image, rotate_image
-from compressors.downloader import get_video_info, download_media, DownloaderError
-from compressors.image_downloader import get_media_info, download_images
-from compressors.transcribe import transcribe_media, WHISPER_AVAILABLE
+from compressors.media import (
+    compress_video, trim_video, resize_video, merge_videos, add_text_video,
+    FFMPEG_AVAILABLE as _FFMPEG_AVAILABLE,
+    get_video_info, download_media, DownloaderError,
+    transcribe_media, WHISPER_AVAILABLE,
+)
+from compressors.archive import compress_archive
 
 # Résolution des chemins compatible PyInstaller (--onefile extrait dans sys._MEIPASS)
 if getattr(sys, "frozen", False):

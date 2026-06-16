@@ -11,7 +11,7 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlparse
 
-from compressors.downloader import _BLOCKED_NETWORKS, DownloaderError
+from compressors.media.downloader import _BLOCKED_NETWORKS, DownloaderError
 
 
 def _validate_url(url: str) -> None:

@@ -4,7 +4,7 @@ Lance avec : pytest tests/test_downloader.py -v
 """
 import pytest
 from unittest.mock import patch, MagicMock
-from compressors.downloader import get_video_info, DownloaderError, _validate_url
+from compressors.media.downloader import get_video_info, DownloaderError, _validate_url
 
 
 def _fake_info():
@@ -23,8 +23,8 @@ def _fake_info():
 
 
 def test_get_video_info_returns_expected_shape():
-    with patch("compressors.downloader._run_ytdlp_info", return_value=_fake_info()):
-        with patch("compressors.downloader._validate_url"):
+    with patch("compressors.media.downloader._run_ytdlp_info", return_value=_fake_info()):
+        with patch("compressors.media.downloader._validate_url"):
             info = get_video_info("https://www.youtube.com/watch?v=test")
     assert info["title"] == "Test Video"
     assert info["thumbnail"] == "https://example.com/thumb.jpg"
@@ -42,14 +42,14 @@ def test_get_video_info_returns_expected_shape():
 def test_get_video_info_raises_on_too_long():
     long_info = _fake_info()
     long_info["duration"] = 7201  # > 2h
-    with patch("compressors.downloader._run_ytdlp_info", return_value=long_info):
-        with patch("compressors.downloader._validate_url"):
+    with patch("compressors.media.downloader._run_ytdlp_info", return_value=long_info):
+        with patch("compressors.media.downloader._validate_url"):
             with pytest.raises(DownloaderError, match="2 heures"):
                 get_video_info("https://www.youtube.com/watch?v=test")
 
 
 def test_get_video_info_raises_on_invalid_url():
-    with patch("compressors.downloader._run_ytdlp_info", side_effect=DownloaderError("URL invalide")):
+    with patch("compressors.media.downloader._run_ytdlp_info", side_effect=DownloaderError("URL invalide")):
         with pytest.raises(DownloaderError):
             get_video_info("not-a-url")
 
@@ -94,7 +94,7 @@ def test_validate_url_accepts_public_url():
 @pytest.mark.skip(reason="Test d'intégration — nécessite connexion internet et yt-dlp")
 def test_real_download_audio(tmp_path):
     """Test réel avec une vraie URL courte (< 30s)."""
-    from compressors.downloader import get_video_info, download_media
+    from compressors.media.downloader import get_video_info, download_media
     url = "https://www.youtube.com/watch?v=BaW_jenozKc"  # "Me at the zoo" — première vidéo YT
     info = get_video_info(url)
     assert info["title"]
