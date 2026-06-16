@@ -1,14 +1,17 @@
 @echo off
 :: ============================================================
-:: CompressIt — Script de lancement
+:: FileLabs — Script de lancement
 :: Double-cliquez sur ce fichier pour démarrer l'application
 :: ============================================================
 
-title CompressIt
+title FileLabs
+
+:: Le script est dans scripts/, on cd au root du projet
+cd /d "%~dp0\.."
 
 echo.
 echo  =============================================
-echo   CompressIt - Installation des dependances
+echo   FileLabs - Installation des dependances
 echo  =============================================
 echo.
 
@@ -34,7 +37,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo  =============================================
-echo   Demarrage de CompressIt...
+echo   Demarrage de FileLabs...
 echo   Le navigateur va s'ouvrir automatiquement.
 echo  =============================================
 echo.

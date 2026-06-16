@@ -10,8 +10,8 @@
   <meta property="og:description" content="Transcrire automatiquement une vidéo ou un audio en texte gratuitement, sans compte." />
   <meta property="og:image" content="https://filelabs.onrender.com/static/icons/icon-512.png" />
   <meta name="twitter:card" content="summary" />
-  <script src="/static/theme.js"></script>
-  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/js/theme.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
@@ -181,7 +181,7 @@
     <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
   </div>
 
-  <script src="/static/utils.js"></script>
+  <script src="/static/js/utils.js"></script>
   <script>
     let transcriptData = null;
     let currentFile = null;
@@ -365,6 +365,6 @@
     showPanel(dropZone);
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
   </script>
-  <script src="/static/banner.js"></script>
+  <script src="/static/js/banner.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 """
 build.py — Génère FileLab.exe avec PyInstaller
-Usage : py build.py
+Usage : py scripts/build.py
 """
 
 import subprocess
@@ -8,7 +8,8 @@ import sys
 import shutil
 from pathlib import Path
 
-HERE = Path(__file__).parent
+# Le script est dans scripts/, le projet est un niveau au-dessus
+HERE = Path(__file__).parent.parent
 
 def run(cmd):
     print(f"\n>>> {' '.join(cmd)}")
