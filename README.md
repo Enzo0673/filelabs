@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/licence-MIT-green?style=for-the-badge)](LICENSE)
 [![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/filelab/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/filelab/actions)
 
-> 🖥️ **[Essayer en ligne](https://filelab.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/filelab/releases/latest)**
+> 🖥️ **[Essayer en ligne](https://filelabs.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/filelab/releases/latest)**
 
 ![Aperçu FileLab](docs/screenshot.png)
 
