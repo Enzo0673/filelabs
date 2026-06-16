@@ -135,7 +135,7 @@ def _cleanup_outputs():
 app = FastAPI(title="FileLabs", version="1.0.0")
 
 # Rate limiting — actif uniquement sur la version en ligne (Render injecte la var RENDER)
-_IS_LOCAL = os.environ.get("RENDER") is not None  # True = on est sur Render (production)
+_ON_RENDER = os.environ.get("RENDER") is not None  # True = on est en production sur Render
 _rate_buckets: dict = {}  # {ip: [timestamp, ...]}
 _RATE_LIMIT = 20          # requêtes max
 _RATE_WINDOW = 60         # par fenêtre de 60s
@@ -145,7 +145,7 @@ _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/")
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     global _RATE_LAST_PURGE
-    if _IS_LOCAL and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
+    if _ON_RENDER and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
         ip = request.client.host if request.client else "unknown"
         now = time.time()
         bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
@@ -170,7 +170,7 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    if _IS_LOCAL:
+    if _ON_RENDER:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
@@ -1414,7 +1414,7 @@ async def health():
 
 @app.get("/status")
 async def status():
-    if _IS_LOCAL:
+    if _ON_RENDER:
         raise HTTPException(status_code=404, detail="Not found")
     return {
         "version": "1.1.0",
