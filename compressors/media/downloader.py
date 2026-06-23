@@ -171,6 +171,9 @@ def download_media(url: str, mode: str, format_id: str, output_path: Path, on_pr
         DownloaderError: échec du téléchargement
     """
     _validate_url(url)
+    import re as _re
+    if not _re.fullmatch(r'[a-zA-Z0-9+\-/_.]+', format_id):
+        raise DownloaderError("format_id invalide.")
     if mode == "audio":
         cmd = [
             sys.executable, "-m", "yt_dlp",

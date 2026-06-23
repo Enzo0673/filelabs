@@ -120,21 +120,28 @@ def pdf_to_jpg(input_path: Path, output_path: Path, dpi: int = 150) -> Path:
 def jpg_to_pdf(input_paths: List[Path], output_path: Path) -> Path:
     output_path = output_path.with_suffix(".pdf")
     images = []
-    for p in input_paths:
-        img = Image.open(p)
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-        images.append(img)
+    try:
+        for p in input_paths:
+            img = Image.open(p)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            images.append(img)
 
-    if not images:
-        raise ValueError("Aucune image valide fournie")
+        if not images:
+            raise ValueError("Aucune image valide fournie")
 
-    images[0].save(
-        output_path,
-        save_all=True,
-        append_images=images[1:],
-        format="PDF",
-    )
+        images[0].save(
+            output_path,
+            save_all=True,
+            append_images=images[1:],
+            format="PDF",
+        )
+    finally:
+        for img in images:
+            try:
+                img.close()
+            except Exception:
+                pass
     return output_path
 
 

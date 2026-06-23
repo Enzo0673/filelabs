@@ -151,7 +151,7 @@ _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/")
 async def rate_limit_middleware(request: Request, call_next):
     global _RATE_LAST_PURGE
     if _ON_RENDER and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
-        ip = request.client.host if request.client else "unknown"
+        ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
         now = time.time()
         bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
         if len(bucket) >= _RATE_LIMIT:
@@ -511,7 +511,7 @@ async def compress(
             def _progress_cb(pct: float):
                 _video_progress[progress_key] = pct
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             output_path = await loop.run_in_executor(
                 None,
                 lambda: compress_video(
@@ -532,7 +532,8 @@ async def compress(
 
         compressed_size = output_path.stat().st_size
         gain_pct = round((1 - compressed_size / original_size) * 100, 1)
-        output_filename = Path(file.filename).stem + "_compressed" + output_path.suffix
+        safe_stem = re.sub(r'[^\w\-]', '_', Path(file.filename).stem)[:64]
+        output_filename = safe_stem + "_compressed" + output_path.suffix
 
         return {
             "success": True,
@@ -640,7 +641,7 @@ async def compress_batch(
             elif file_type == "pdf":
                 out_path = compress_pdf(in_path, out_path, level)
             elif file_type == "video":
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
                 captured_in, captured_out = in_path, out_path
                 out_path = await loop.run_in_executor(
                     None, lambda ip=captured_in, op=captured_out: compress_video(ip, op, level)
@@ -652,7 +653,7 @@ async def compress_batch(
         zip_path = OUTPUT_DIR / f"{batch_uid}_output.zip"
         with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
             for i, (orig_file, out_p) in enumerate(zip(files, output_paths)):
-                stem = Path(orig_file.filename).stem
+                stem = re.sub(r'[^\w\-]', '_', Path(orig_file.filename).stem)[:64]
                 arcname = f"{i+1}_{stem}_compressed{out_p.suffix}"
                 zf.write(out_p, arcname)
 
@@ -782,8 +783,12 @@ async def pdf_rotate(
         await _save_upload(file, input_path, MAX_SIZE["pdf"])
         output_path = OUTPUT_DIR / f"{uid}_output.pdf"
         if rotation_map:
+            if len(rotation_map) > 500:
+                raise HTTPException(status_code=400, detail="Paramètre rotation_map trop long")
             rotate_pdf_map(input_path, output_path, rotation_map)
         else:
+            if pages and len(pages) > 500:
+                raise HTTPException(status_code=400, detail="Paramètre pages trop long")
             rotate_pdf(input_path, output_path, angle=angle or 90, pages=pages or "all")
         return {"success": True, "download_id": uid, "output_filename": "rotated.pdf"}
     except Exception as e:
@@ -855,6 +860,8 @@ async def pdf_delete_pages(
     file: UploadFile = File(...),
     pages: str = Form(...),
 ):
+    if len(pages) > 500:
+        raise HTTPException(status_code=400, detail="Paramètre pages trop long")
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input.pdf"
     try:
@@ -982,7 +989,8 @@ async def office_to_pdf(file: UploadFile = File(...)):
             capture_output=True, text=True, timeout=120
         )
         if result.returncode != 0:
-            raise ValueError(result.stderr or "Échec de la conversion")
+            logger.error("LibreOffice conversion failed: %s", result.stderr[:500])
+            raise ValueError("Échec de la conversion LibreOffice")
         pdf_files = list(output_dir.glob("*.pdf"))
         if not pdf_files:
             raise ValueError("Aucun PDF généré")
@@ -1017,7 +1025,7 @@ async def video_download_info(body: _DownloadInfoRequest):
     if not url:
         raise HTTPException(status_code=422, detail="URL manquante.")
     try:
-        info = await asyncio.get_event_loop().run_in_executor(
+        info = await asyncio.get_running_loop().run_in_executor(
             None, lambda: get_video_info(url)
         )
     except DownloaderError as e:
@@ -1067,17 +1075,11 @@ async def video_download(body: _DownloadRequest):
         except DownloaderError as e:
             _download_progress[uid] = -1.0
             raise
-        finally:
-            import threading
-            def _cleanup():
-                import time; time.sleep(60)
-                _download_progress.pop(uid, None)
-            threading.Thread(target=_cleanup, daemon=True).start()
 
     try:
         async with _DOWNLOAD_SEMAPHORE:
             await asyncio.wait_for(
-                asyncio.get_event_loop().run_in_executor(None, _run),
+                asyncio.get_running_loop().run_in_executor(None, _run),
                 timeout=_DOWNLOAD_TIMEOUT,
             )
     except asyncio.TimeoutError:
@@ -1088,6 +1090,11 @@ async def video_download(body: _DownloadRequest):
     except Exception as e:
         logger.error("%s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Erreur lors du téléchargement.")
+
+    async def _delayed_cleanup():
+        await asyncio.sleep(60)
+        _download_progress.pop(uid, None)
+    asyncio.create_task(_delayed_cleanup())
 
     output_filename = f"video{ext}" if body.mode == "video" else "audio.mp3"
     return {"success": True, "download_id": uid, "output_filename": output_filename}
@@ -1137,7 +1144,7 @@ async def media_info(body: _MediaInfoRequest):
     if not url:
         raise HTTPException(status_code=422, detail="URL manquante.")
     try:
-        info = await asyncio.get_event_loop().run_in_executor(
+        info = await asyncio.get_running_loop().run_in_executor(
             None, lambda: get_media_info(url)
         )
     except DownloaderError as e:
@@ -1169,7 +1176,7 @@ async def media_download(body: _MediaDownloadRequest):
     work_dir = OUTPUT_DIR / f"{uid}_imgs"
 
     try:
-        result = await asyncio.get_event_loop().run_in_executor(
+        result = await asyncio.get_running_loop().run_in_executor(
             None, lambda: download_images(url, body.indices, work_dir)
         )
     except DownloaderError as e:
@@ -1266,7 +1273,7 @@ async def video_merge(files: List[UploadFile] = File(...)):
             await _save_upload(f, p, MAX_SIZE["video"])
             input_paths.append(p)
         output_path = OUTPUT_DIR / f"{uid}_output.mp4"
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(
             None, lambda: merge_videos(input_paths, output_path)
         )
@@ -1309,7 +1316,7 @@ async def video_add_text(
     output_path = OUTPUT_DIR / f"{uid}_output{ext}"
     try:
         await _save_upload(file, input_path, MAX_SIZE["video"])
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(
             None, lambda: add_text_video(
                 input_path, output_path,
@@ -1364,7 +1371,7 @@ async def video_to_text(
     input_path = UPLOAD_DIR / f"{uid}_input{ext}"
     try:
         await _save_upload(file, input_path, MAX_SIZE["video"])
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(
             None,
             lambda: transcribe_media(input_path, language=language, model_size=model),
@@ -1409,6 +1416,9 @@ async def image_convert(
     file: UploadFile = File(...),
     target_format: str = Form("webp"),
 ):
+    _VALID_IMAGE_FORMATS = {"jpeg", "jpg", "png", "webp", "gif", "bmp", "tiff"}
+    if target_format.lower() not in _VALID_IMAGE_FORMATS:
+        raise HTTPException(status_code=400, detail="Format cible invalide.")
     uid = uuid.uuid4().hex
     ext = Path(file.filename).suffix.lower()
     input_path = UPLOAD_DIR / f"{uid}_input{ext}"
