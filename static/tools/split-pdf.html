@@ -60,6 +60,8 @@
   <script src="/static/js/utils.js"></script>
   <script src="/static/js/pdf-preview.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/vendor/pdf.worker.min.js';</script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script>
     let currentFile = null;
     const dropZone = document.getElementById('dropZone');
@@ -89,13 +91,19 @@
       const ranges = document.getElementById('ranges').value;
       if (ranges) fd.append('ranges', ranges);
       try {
-        const res = await fetch('/pdf/split', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        document.getElementById('resultStats').innerHTML = `<div class="stat-item"><span class="stat-label">Résultat</span><span class="stat-value">ZIP téléchargeable</span></div>`;
-        showPanel(resultPanel);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.split(currentFile, { ranges: ranges || '' });
+          document.getElementById('btnDownload').href = blobUrl;
+          document.getElementById('btnDownload').download = currentFile.name.replace(/\.pdf$/i, '_split.zip');
+          showPanel(resultPanel);
+        } else {
+          const res = await fetch('/pdf/split', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(resultPanel);
+        }
       } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(errorPanel); }
     });
     function reset() { currentFile = null; showPanel(dropZone); }

@@ -181,8 +181,8 @@
   </main>
 </div>
 
+<script src="/js/env.js"></script>
 <script>
-  let currentImages = [];
   let selectedIndices = new Set();
 
   const urlInput     = document.getElementById('urlInput');
@@ -267,6 +267,10 @@
   });
 
   analyzeBtn.addEventListener('click', async () => {
+    if (window.FileLabs && window.FileLabs.isWebMode) {
+      showError(analyzeError, "Le téléchargement d'images depuis URL nécessite le serveur local. Lancez FileLabs localement pour utiliser cette fonctionnalité.");
+      return;
+    }
     const url = urlInput.value.trim();
     if (!url) { showError(analyzeError, 'Veuillez coller une URL.'); return; }
     hideError(analyzeError);

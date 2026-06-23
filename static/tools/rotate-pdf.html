@@ -193,6 +193,8 @@
 
   <!-- PDF.js depuis CDN -->
   <script src="/static/vendor/pdf.min.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/vendor/pdf.worker.min.js';
 
@@ -349,12 +351,19 @@
       fd.append('rotation_map', rotationMap);
 
       try {
-        const res = await fetch('/pdf/rotate', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        showPanel(resultPanel);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.rotatePdf(currentFile, { rotationMap });
+          document.getElementById('btnDownload').href = blobUrl;
+          document.getElementById('btnDownload').download = currentFile.name.replace(/\.pdf$/i, '_rotated.pdf');
+          showPanel(resultPanel);
+        } else {
+          const res = await fetch('/pdf/rotate', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(resultPanel);
+        }
       } catch(err) {
         document.getElementById('errorMsg').textContent = err.message;
         showPanel(errorPanel);

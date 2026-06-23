@@ -17,6 +17,8 @@
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
   <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/image-processor.js"></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
   <style>
     .crop-wrap { position:relative; display:inline-block; cursor:crosshair; user-select:none; }
@@ -544,12 +546,22 @@
       fd.append('right', right); fd.append('bottom', bottom);
 
       try {
-        const res  = await fetch('/image/crop', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href     = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        showPanel(resultPanel);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await ImageProcessor.crop(currentFile, { left, top, right, bottom });
+          const stem = currentFile.name.replace(/\.[^.]+$/, '');
+          const ext = currentFile.name.split('.').pop();
+          const a = document.createElement('a');
+          a.href = blobUrl; a.download = stem + '_cropped.' + ext; a.click();
+          URL.revokeObjectURL(blobUrl);
+          showPanel(resultPanel);
+        } else {
+          const res  = await fetch('/image/crop', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href     = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(resultPanel);
+        }
       } catch(err) {
         document.getElementById('errorMsg').textContent = err.message;
         showPanel(errorPanel);

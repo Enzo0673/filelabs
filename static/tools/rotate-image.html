@@ -37,6 +37,8 @@
     .preview-dims { font-size:.82rem; color:var(--text-muted); font-weight:600; }
   </style>
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/image-processor.js"></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
 </head>
 <body>
@@ -225,12 +227,25 @@
       if (selectedFlip !== 'none') fd.append('flip', selectedFlip);
 
       try {
-        const res  = await fetch('/image/rotate', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href     = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        showPanel(resultPanel);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await ImageProcessor.rotate(currentFile, {
+            angle: selectedAngle,
+            flip: selectedFlip
+          });
+          const stem = currentFile.name.replace(/\.[^.]+$/, '');
+          const ext = currentFile.name.split('.').pop();
+          const a = document.createElement('a');
+          a.href = blobUrl; a.download = stem + '_rotated.' + ext; a.click();
+          URL.revokeObjectURL(blobUrl);
+          showPanel(resultPanel);
+        } else {
+          const res  = await fetch('/image/rotate', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href     = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(resultPanel);
+        }
       } catch(err) {
         document.getElementById('errorMsg').textContent = err.message;
         showPanel(errorPanel);

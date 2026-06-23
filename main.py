@@ -168,6 +168,8 @@ async def rate_limit_middleware(request: Request, call_next):
             _RATE_LAST_PURGE = now
     return await call_next(request)
 
+_VIDEO_TOOL_PATHS = ("/tool/compress-video", "/tool/edit-video")
+
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     response = await call_next(request)
@@ -175,17 +177,30 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+
+    # Pages vidéo : SharedArrayBuffer requis pour ffmpeg.wasm
+    is_video_page = any(request.url.path.startswith(p) for p in _VIDEO_TOOL_PATHS)
+    if is_video_page:
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+
     if _ON_RENDER:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # CDN origins pour pdf-lib, fflate, ffmpeg.wasm, pdfjs-dist
+        cdn_origins = (
+            "https://cdn.jsdelivr.net "
+            "https://unpkg.com "
+            "https://esm.sh "
+        )
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
+            f"script-src 'self' 'unsafe-inline' {cdn_origins}; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: blob:; "
             "media-src 'self' blob:; "
-            "worker-src blob:; "
-            "connect-src 'self' https://cloud.umami.is; "
+            f"worker-src blob: {cdn_origins}; "
+            f"connect-src 'self' https://cloud.umami.is {cdn_origins}; "
             "frame-ancestors 'none';"
         )
     return response

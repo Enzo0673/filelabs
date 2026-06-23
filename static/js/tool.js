@@ -243,6 +243,40 @@ function initTool(config) {
     btnCompress.addEventListener('click', withButtonLock(btnCompress, async () => {
       if (!currentFile) return;
       const fileType = detectType(currentFile.name);
+      const isWeb = window.FileLabs && window.FileLabs.isWebMode;
+
+      // --- MODE WEB : traitement 100% client-side ---
+      if (isWeb && config.clientProcessor) {
+        showPanel(progressPanel);
+        startProgress(currentFile.size, fileType, null);
+        try {
+          const data = await config.clientProcessor(currentFile, {
+            level: selectedLevel,
+            imgQuality: document.getElementById('imgQuality')?.value,
+            imgFormat: document.getElementById('imgFormat')?.value,
+            imgMaxWidth: document.getElementById('imgMaxWidth')?.value,
+            vidCrf: document.getElementById('vidCrf')?.value,
+            vidCodec: document.getElementById('vidCodec')?.value,
+            vidPreset: document.getElementById('vidPreset')?.value,
+            vidMaxHeight: document.getElementById('vidHeight')?.value,
+            pdfDpi: document.getElementById('pdfDpi')?.value,
+            pdfRemoveMeta: document.getElementById('pdfMeta')?.checked,
+            arcAlgo: document.getElementById('arcAlgo')?.value,
+            arcLevel: document.getElementById('arcLevel')?.value
+          }, (pct) => {
+            const bar = document.getElementById('progressBar');
+            if (bar) { bar.style.transition = 'width 0.4s ease'; bar.style.width = Math.min(pct, 99) + '%'; }
+          });
+          finishProgress();
+          setTimeout(() => { currentDownloadId = data.download_id; showResult(data); }, 350);
+        } catch (err) {
+          finishProgress();
+          showError(err.message);
+        }
+        return;
+      }
+
+      // --- MODE LOCAL : envoi serveur ---
       const jobId = crypto.randomUUID().replace(/-/g, '');
       showPanel(progressPanel);
       startProgress(currentFile.size, fileType, fileType === 'video' ? jobId : null);
@@ -296,21 +330,57 @@ function initTool(config) {
   }
 
   // ---- Result ----
+  let _resultBlobUrl = null;
+
   function showResult(data) {
-    document.getElementById('resultBadge').textContent = `−${data.gain_pct}%`;
-    document.getElementById('resultStats').innerHTML = `
-      <div class="stat-item"><span class="stat-label">Avant</span><span class="stat-value">${formatBytes(data.original_size)}</span></div>
-      <div class="stat-item"><span class="stat-label">Après</span><span class="stat-value">${formatBytes(data.compressed_size)}</span></div>
-      <div class="stat-item"><span class="stat-label">Gain</span><span class="stat-value" style="color:var(--success)">−${formatBytes(data.original_size - data.compressed_size)}</span></div>
-    `;
+    const afterSize = data.output_size || data.compressed_size || 0;
+    const beforeSize = data.original_size || (currentFile ? currentFile.size : 0);
+    const gain = beforeSize > 0 ? Math.round((beforeSize - afterSize) / beforeSize * 100) : (data.gain_pct || 0);
+    const gainPct = data.gain_pct !== undefined ? data.gain_pct : gain;
+
+    const badge = document.getElementById('resultBadge');
+    if (badge) badge.textContent = '\u2212' + gainPct + '%';
+
+    const stats = document.getElementById('resultStats');
+    if (stats) {
+      stats.textContent = '';
+      [
+        ['Avant', formatBytes(beforeSize)],
+        ['Apres', formatBytes(afterSize)],
+        ['Gain', '\u2212' + formatBytes(Math.max(0, beforeSize - afterSize))]
+      ].forEach(function(row, i) {
+        const item = document.createElement('div');
+        item.className = 'stat-item';
+        const lbl = document.createElement('span');
+        lbl.className = 'stat-label';
+        lbl.textContent = row[0];
+        const val = document.createElement('span');
+        val.className = 'stat-value';
+        val.textContent = row[1];
+        if (i === 2) val.style.color = 'var(--success)';
+        item.appendChild(lbl);
+        item.appendChild(val);
+        stats.appendChild(item);
+      });
+    }
+
     if (btnDownload) {
-      btnDownload.href = `/download/${data.download_id}`;
+      if (data.blobUrl) {
+        if (_resultBlobUrl && _resultBlobUrl !== data.blobUrl) URL.revokeObjectURL(_resultBlobUrl);
+        _resultBlobUrl = data.blobUrl;
+        btnDownload.href = data.blobUrl;
+      } else {
+        btnDownload.href = '/download/' + data.download_id;
+      }
       btnDownload.download = data.output_filename;
-      setTimeout(() => btnDownload.click(), 400);
+      setTimeout(function() { btnDownload.click(); }, 400);
     }
     showPanel(resultPanel);
-    if (data.file_type === 'image' && _originalBlobUrl) {
-      _renderImageSlider(_originalBlobUrl, `/download/${data.download_id}`);
+
+    const fileType = currentFile ? detectType(currentFile.name) : '';
+    if (fileType === 'image' && _originalBlobUrl) {
+      const compUrl = data.blobUrl || ('/download/' + data.download_id);
+      _renderImageSlider(_originalBlobUrl, compUrl);
     }
   }
 
@@ -360,12 +430,14 @@ function initTool(config) {
 
   // ---- Reset ----
   function reset() {
-    if (currentDownloadId) {
-      fetch(`/cleanup/${currentDownloadId}`, { method: 'DELETE' }).catch(() => {});
-      currentDownloadId = null;
+    const isWeb = window.FileLabs && window.FileLabs.isWebMode;
+    if (currentDownloadId && currentDownloadId !== '__blob__' && !isWeb) {
+      fetch('/cleanup/' + currentDownloadId, { method: 'DELETE' }).catch(function() {});
     }
+    currentDownloadId = null;
     currentFile = null;
     if (_originalBlobUrl) { URL.revokeObjectURL(_originalBlobUrl); _originalBlobUrl = null; }
+    if (_resultBlobUrl) { URL.revokeObjectURL(_resultBlobUrl); _resultBlobUrl = null; }
     document.getElementById('imageSlider')?.remove();
     if (fileInput) fileInput.value = '';
     showPanel(dropZone);

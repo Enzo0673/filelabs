@@ -1,14 +1,18 @@
-const CACHE_NAME = 'filelabs-v1';
+const CACHE_NAME = 'filelabs-v2';
 const STATIC_ASSETS = [
   '/',
   '/static/css/style.css',
   '/static/js/app.js',
   '/static/js/tool.js',
+  '/static/js/env.js',
   '/static/js/pdf-preview.js',
   '/static/js/utils.js',
   '/static/js/banner.js',
   '/static/js/home.js',
   '/static/js/theme.js',
+  '/static/js/processors/image-processor.js',
+  '/static/js/processors/pdf-processor.js',
+  '/static/js/processors/archive-processor.js',
   '/static/manifest.json',
   '/static/icons/icon-192.png',
   '/static/icons/icon-512.png',
@@ -61,6 +65,14 @@ self.addEventListener('activate', event => {
 // Fetch : network-first pour les API, cache-first pour tout le reste
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+
+  // Pages vidéo : toujours réseau pour que COOP/COEP soient fresh (SharedArrayBuffer)
+  if (
+    url.pathname === '/tool/compress-video' ||
+    url.pathname === '/tool/edit-video'
+  ) {
+    return; // pass-through, no SW interference
+  }
 
   // Toujours réseau pour les routes API (upload/traitement/download)
   if (

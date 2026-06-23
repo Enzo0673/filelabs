@@ -17,6 +17,8 @@
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
   <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
 </head>
 <body>
@@ -107,13 +109,19 @@
       const fd = new FormData();
       files.forEach(f => fd.append('files', f));
       try {
-        const res = await fetch('/pdf/from-jpg', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        document.getElementById('resultStats').innerHTML = `<div class="stat-item"><span class="stat-label">Images assemblées</span><span class="stat-value">${files.length}</span></div>`;
-        showPanel(ALL[3]);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.fromImages(files);
+          document.getElementById('btnDownload').href = blobUrl;
+          document.getElementById('btnDownload').download = 'images.pdf';
+          showPanel(ALL[3]);
+        } else {
+          const res = await fetch('/pdf/from-jpg', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(ALL[3]);
+        }
       } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(ALL[4]); }
     });
     function reset() { files = []; showPanel(dropZone); }

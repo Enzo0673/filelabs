@@ -98,6 +98,8 @@
   </div>
 
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/archive-processor.js"></script>
   <script>
     const FILE_ICONS = { image: '🖼️', video: '🎬', pdf: '📄', archive: '📦', default: '📄' };
     const EXT_TYPE = {
@@ -190,20 +192,34 @@
       fd.append('level', selectedLevel);
 
       try {
-        const res = await fetch('/compress/batch', { method: 'POST', body: fd });
-        const data = await res.json();
-        clearInterval(tick);
-        bar.style.transition = 'width 0.3s ease'; bar.style.width = '100%';
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          clearInterval(tick);
+          bar.style.transition = 'width 0.3s ease'; bar.style.width = '100%';
+          const blobUrl = await ArchiveProcessor.compressBatch(files, { level: selectedLevel });
+          await new Promise(r => setTimeout(r, 350));
+          document.getElementById('resultBadge').textContent = '✓';
+          document.getElementById('resultMsg').textContent = `${files.length} fichier${files.length > 1 ? 's' : ''} compressé${files.length > 1 ? 's' : ''}`;
+          const btn = document.getElementById('btnDownload');
+          btn.href = blobUrl;
+          btn.download = 'batch_compressed.zip';
+          showPanel(resultPanel);
+          setTimeout(() => btn.click(), 400);
+        } else {
+          const res = await fetch('/compress/batch', { method: 'POST', body: fd });
+          const data = await res.json();
+          clearInterval(tick);
+          bar.style.transition = 'width 0.3s ease'; bar.style.width = '100%';
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
 
-        await new Promise(r => setTimeout(r, 350));
-        document.getElementById('resultBadge').textContent = '✓';
-        document.getElementById('resultMsg').textContent = `${data.count} fichier${data.count > 1 ? 's' : ''} compressé${data.count > 1 ? 's' : ''}`;
-        const btn = document.getElementById('btnDownload');
-        btn.href = `/download/${data.download_id}`;
-        btn.download = data.output_filename;
-        showPanel(resultPanel);
-        setTimeout(() => btn.click(), 400);
+          await new Promise(r => setTimeout(r, 350));
+          document.getElementById('resultBadge').textContent = '✓';
+          document.getElementById('resultMsg').textContent = `${data.count} fichier${data.count > 1 ? 's' : ''} compressé${data.count > 1 ? 's' : ''}`;
+          const btn = document.getElementById('btnDownload');
+          btn.href = `/download/${data.download_id}`;
+          btn.download = data.output_filename;
+          showPanel(resultPanel);
+          setTimeout(() => btn.click(), 400);
+        }
       } catch (err) {
         clearInterval(tick);
         document.getElementById('errorMsg').textContent = err.message;

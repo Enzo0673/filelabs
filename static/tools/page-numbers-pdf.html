@@ -61,6 +61,8 @@
   <script src="/static/js/utils.js"></script>
   <script src="/static/js/pdf-preview.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/vendor/pdf.worker.min.js';</script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script>
     let currentFile = null, selectedPos = 'bottom-center';
     const ALL = ['dropZone','configPanel','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
@@ -87,12 +89,19 @@
       fd.append('file', currentFile);
       fd.append('position', selectedPos);
       try {
-        const res = await fetch('/pdf/page-numbers', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        showPanel(ALL[3]);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.addPageNumbers(currentFile, { position: selectedPos });
+          document.getElementById('btnDownload').href = blobUrl;
+          document.getElementById('btnDownload').download = currentFile.name.replace(/\.pdf$/i, '_numbered.pdf');
+          showPanel(ALL[3]);
+        } else {
+          const res = await fetch('/pdf/page-numbers', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(ALL[3]);
+        }
       } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(ALL[4]); }
     });
     function reset() { currentFile = null; showPanel(ALL[0]); }

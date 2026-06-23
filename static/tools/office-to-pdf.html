@@ -54,6 +54,7 @@
     <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
   </div>
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
   <script>
     const panels = ['dropZone','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
     function showPanel(p) { panels.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
@@ -83,6 +84,11 @@
       const fd = new FormData();
       fd.append('file', f);
       try {
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          document.getElementById('errorMsg').textContent = 'La conversion Office vers PDF nécessite LibreOffice sur le serveur local. Lancez FileLabs localement pour utiliser cette fonctionnalité.';
+          showPanel(panels[3]);
+          return;
+        }
         const res = await fetch('/office/to-pdf', { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Erreur serveur');

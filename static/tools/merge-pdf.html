@@ -17,6 +17,8 @@
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
   <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
 </head>
 <body>
@@ -140,14 +142,23 @@
       showPanel(progressPanel);
       const fd = new FormData();
       files.forEach(f => fd.append('files', f));
+      const statsHtml = `<div class="stat-item"><span class="stat-label">Fichiers fusionnés</span><span class="stat-value">${files.length}</span></div>`;
       try {
-        const res = await fetch('/pdf/merge', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        btnDownload.href = `/download/${data.download_id}`;
-        btnDownload.download = data.output_filename;
-        document.getElementById('resultStats').innerHTML = `<div class="stat-item"><span class="stat-label">Fichiers fusionnés</span><span class="stat-value">${files.length}</span></div>`;
-        showPanel(resultPanel);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.merge(files);
+          btnDownload.href = blobUrl;
+          btnDownload.download = 'merged.pdf';
+          document.getElementById('resultStats').innerHTML = statsHtml;
+          showPanel(resultPanel);
+        } else {
+          const res = await fetch('/pdf/merge', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          btnDownload.href = `/download/${data.download_id}`;
+          btnDownload.download = data.output_filename;
+          document.getElementById('resultStats').innerHTML = statsHtml;
+          showPanel(resultPanel);
+        }
       } catch (err) {
         document.getElementById('errorMsg').textContent = err.message;
         showPanel(errorPanel);

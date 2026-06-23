@@ -60,6 +60,8 @@
     <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
   </div>
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script>
     let allText = '';
     const panels = ['dropZone','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
@@ -79,9 +81,14 @@
       const fd = new FormData();
       fd.append('file', f);
       try {
-        const res = await fetch('/pdf/extract-text', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        let data;
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          data = await PDFProcessor.extractText(f);
+        } else {
+          const res = await fetch('/pdf/extract-text', { method: 'POST', body: fd });
+          data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        }
 
         const textResult = document.getElementById('textResult');
         textResult.innerHTML = '';

@@ -182,6 +182,7 @@
   </div>
 
   <script src="/static/js/utils.js"></script>
+  <script src="/js/env.js"></script>
   <script>
     let transcriptData = null;
     let currentFile = null;
@@ -228,6 +229,11 @@
       fd.append('model', document.getElementById('selModel').value);
 
       try {
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          document.getElementById('errorMsg').textContent = 'La transcription vidéo nécessite le serveur local. Lancez FileLabs localement pour utiliser cette fonctionnalité.';
+          showPanel(errorPanel);
+          return;
+        }
         const res = await fetch('/video/to-text', { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Erreur serveur');

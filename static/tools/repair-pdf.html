@@ -68,6 +68,8 @@
   <script src="/static/js/utils.js"></script>
   <script src="/static/js/pdf-preview.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/vendor/pdf.worker.min.js';</script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <script>
     let currentFile = null;
     const ALL = ['dropZone','configPanel','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
@@ -94,19 +96,32 @@
       fd.append('remove_blank_pages', document.getElementById('removeBlank').checked);
       fd.append('flatten_annotations', document.getElementById('flattenAnnots').checked);
       try {
-        const res = await fetch('/pdf/repair', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        let stats = `<div class="stat-item"><span class="stat-label">Pages restantes</span><span class="stat-value">${data.pages_remaining}</span></div>`;
-        if (data.removed_pages > 0) {
-          stats += `<div class="stat-item"><span class="stat-label">Pages vides supprimées</span><span class="stat-value">${data.removed_pages}</span></div>`;
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.repair(currentFile, {
+            removeBlankPages: document.getElementById('removeBlank').checked,
+            flattenAnnotations: document.getElementById('flattenAnnots').checked
+          });
+          document.getElementById('btnDownload').href = blobUrl;
+          document.getElementById('btnDownload').download = currentFile.name.replace(/\.pdf$/i, '_repaired.pdf');
+          showPanel(ALL[3]);
+        } else {
+          const res = await fetch('/pdf/repair', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          setRepairStats(data.pages_remaining, data.removed_pages);
+          showPanel(ALL[3]);
         }
-        document.getElementById('resultStats').innerHTML = stats;
-        showPanel(ALL[3]);
       } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(ALL[4]); }
     }));
+    function setRepairStats(pagesRemaining, removedPages) {
+      let stats = `<div class="stat-item"><span class="stat-label">Pages restantes</span><span class="stat-value">${pagesRemaining}</span></div>`;
+      if (removedPages > 0) {
+        stats += `<div class="stat-item"><span class="stat-label">Pages vides supprimées</span><span class="stat-value">${removedPages}</span></div>`;
+      }
+      document.getElementById('resultStats').innerHTML = stats;
+    }
     function reset() { currentFile = null; showPanel(ALL[0]); }
     document.getElementById('btnReset').addEventListener('click', reset);
     document.getElementById('btnErrorReset').addEventListener('click', reset);

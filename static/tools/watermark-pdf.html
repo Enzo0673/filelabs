@@ -78,6 +78,8 @@
   <script src="/static/js/utils.js"></script>
   <script src="/static/js/pdf-preview.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/vendor/pdf.worker.min.js';</script>
+  <script src="/js/env.js"></script>
+  <script src="/js/processors/pdf-processor.js"></script>
   <style>
     .preset-pos-btn {
       padding:7px 14px; border:1.5px solid var(--border); border-radius:8px;
@@ -124,12 +126,24 @@
       fd.append('position', selectedPos);
       fd.append('color', color);
       try {
-        const res = await fetch('/pdf/watermark', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
-        document.getElementById('btnDownload').href = `/download/${data.download_id}`;
-        document.getElementById('btnDownload').download = data.output_filename;
-        showPanel(ALL[3]);
+        if (window.FileLabs && window.FileLabs.isWebMode) {
+          const blobUrl = await PDFProcessor.watermark(currentFile, {
+            text: document.getElementById('wText').value || 'CONFIDENTIEL',
+            opacity: parseFloat(document.getElementById('wOpacity').value) || 0.3,
+            position: selectedPos,
+            color
+          });
+          document.getElementById('btnDownload').href = blobUrl;
+          document.getElementById('btnDownload').download = currentFile.name.replace(/\.pdf$/i, '_watermarked.pdf');
+          showPanel(ALL[3]);
+        } else {
+          const res = await fetch('/pdf/watermark', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+          document.getElementById('btnDownload').href = `/download/${data.download_id}`;
+          document.getElementById('btnDownload').download = data.output_filename;
+          showPanel(ALL[3]);
+        }
       } catch(err) { document.getElementById('errorMsg').textContent = err.message; showPanel(ALL[4]); }
     });
     function reset() { currentFile = null; showPanel(ALL[0]); }
