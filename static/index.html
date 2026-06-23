@@ -26,6 +26,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/icon-16.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" />
   <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
 </head>
 <body class="home-body">
@@ -50,8 +51,47 @@
 
     <!-- Hero -->
     <div class="hero">
-      <h1 class="hero-title">Tous vos outils fichiers,<br>en un seul endroit</h1>
-      <p class="hero-sub">Gratuit, sans inscription, sans limite de taille</p>
+      <div class="hero-eyebrow">Outils fichiers gratuits &amp; open source</div>
+      <h1 class="hero-title">Tous vos outils fichiers,<br><em>en un seul endroit</em></h1>
+      <p class="hero-sub">Compressez, convertissez et éditez vos PDF, images, vidéos et archives — sans compte, sans limite.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          100% gratuit
+        </span>
+        <span class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Sans inscription
+        </span>
+        <span class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Open source
+        </span>
+        <span class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Dark mode
+        </span>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-block">
+        <div class="stat-num">25</div>
+        <div class="stat-desc">outils disponibles</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num">0</div>
+        <div class="stat-desc">compte requis</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num">100%</div>
+        <div class="stat-desc">gratuit &amp; local</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num">MIT</div>
+        <div class="stat-desc">open source</div>
+      </div>
     </div>
 
     <!-- Catégorie Multi-fichiers -->
@@ -65,6 +105,7 @@
           </svg>
         </span>
         <h2 class="section-title">Multi-fichiers</h2>
+        <span class="section-count">1</span>
       </div>
       <div class="tools-grid">
         <a class="tool-card" href="/tool/compress-batch">
@@ -86,6 +127,7 @@
           </svg>
         </span>
         <h2 class="section-title">PDF</h2>
+        <span class="section-count">14</span>
       </div>
       <div class="tools-grid">
         <a class="tool-card" href="/tool/merge-pdf">
@@ -172,6 +214,7 @@
           </svg>
         </span>
         <h2 class="section-title">Images</h2>
+        <span class="section-count">5</span>
       </div>
       <div class="tools-grid">
         <a class="tool-card" href="/tool/compress-image">
@@ -212,6 +255,7 @@
           </svg>
         </span>
         <h2 class="section-title">Vidéo</h2>
+        <span class="section-count">4</span>
       </div>
       <div class="tools-grid">
         <a class="tool-card" href="/tool/compress-video">
@@ -247,6 +291,7 @@
           </svg>
         </span>
         <h2 class="section-title">Archives</h2>
+        <span class="section-count">1</span>
       </div>
       <div class="tools-grid">
         <a class="tool-card" href="/tool/compress-archive">

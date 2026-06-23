@@ -1,37 +1,75 @@
-# FileLab
+# FileLabs
 
 **Outils fichiers gratuits, 100% locaux — images, PDF, vidéos, archives.**
 
-[![Release](https://img.shields.io/github/v/release/Enzo0673/filelab?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=0D9488)](https://github.com/Enzo0673/filelab/releases/latest)
-[![License: MIT](https://img.shields.io/badge/licence-MIT-green?style=for-the-badge)](LICENSE)
-[![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/filelab/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/filelab/actions)
+[![Release](https://img.shields.io/github/v/release/Enzo0673/filelabs?label=t%C3%A9l%C3%A9charger&style=for-the-badge&color=2DD4BF)](https://github.com/Enzo0673/filelabs/releases/latest)
+[![License: MIT](https://img.shields.io/badge/licence-MIT-2DD4BF?style=for-the-badge)](LICENSE)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Enzo0673/filelabs/test.yml?style=for-the-badge&label=tests)](https://github.com/Enzo0673/filelabs/actions)
 
-> 🖥️ **[Essayer en ligne](https://filelabs.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/filelab/releases/latest)**
+> 🖥️ **[Essayer en ligne](https://filelabs.onrender.com)** · 📥 **[Télécharger l'app locale](https://github.com/Enzo0673/filelabs/releases/latest)**
 
-![Aperçu FileLab](docs/screenshot.png)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  FileLabs                                  ● 100% local — dark by default   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─ Outils fichiers gratuits & open source ─────────────────────────┐     │
+│   │                                                                   │     │
+│   │   Tous vos outils fichiers,                                       │     │
+│   │   en un seul endroit                                              │     │
+│   │                                                                   │     │
+│   │   Compressez, convertissez et éditez vos PDF, images,             │     │
+│   │   vidéos et archives — sans compte, sans limite.                  │     │
+│   │                                                                   │     │
+│   │   ✓ 100% gratuit  🔒 Sans inscription  ⭐ Open source  🌙 Dark    │     │
+│   └───────────────────────────────────────────────────────────────────┘     │
+│                                                                             │
+│   ──────────────────────────────────────────────────────────────────────   │
+│      25 outils       0 compte requis       100% local       MIT licence     │
+│   ──────────────────────────────────────────────────────────────────────   │
+│                                                                             │
+│   PDF  ·  14  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  │
+│               │ 🔗 Fusionner   │  │ ✂️  Diviser     │  │ 📦 Compresser  │  │
+│               │ Combiner       │  │ Extraire pages │  │ Réduire poids  │  │
+│               └────────────────┘  └────────────────┘  └────────────────┘  │
+│               ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  │
+│               │ 🖼️  PDF→JPG    │  │ 📄 JPG→PDF     │  │ 🔄 Rotation    │  │
+│               └────────────────┘  └────────────────┘  └────────────────┘  │
+│                                                                             │
+│   Images · 5  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  │
+│               │ 📸 Compresser  │  │ ↔️  Redim.      │  │ 🔁 Convertir   │  │
+│               └────────────────┘  └────────────────┘  └────────────────┘  │
+│                                                                             │
+│   Vidéo  · 4  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐  │
+│               │ 🎬 Compresser  │  │ ✏️  Éditer      │  │ ⬇️  Downloader │  │
+│               └────────────────┘  └────────────────┘  └────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## ⬇️ Télécharger l'application
+## Télécharger l'application
 
 | Plateforme | Lien |
 |---|---|
-| **Windows** | [FileLab.exe](https://github.com/Enzo0673/filelab/releases/latest/download/FileLab.exe) |
-| **macOS** | [FileLab-macOS.zip](https://github.com/Enzo0673/filelab/releases/latest/download/FileLab-macOS.zip) |
-| **Linux** | [FileLab-Linux.tar.gz](https://github.com/Enzo0673/filelab/releases/latest/download/FileLab-Linux.tar.gz) |
+| **Windows** | [FileLabs.exe](https://github.com/Enzo0673/filelabs/releases/latest/download/FileLabs.exe) |
+| **macOS** | [FileLabs-macOS.zip](https://github.com/Enzo0673/filelabs/releases/latest/download/FileLabs-macOS.zip) |
+| **Linux** | [FileLabs-Linux.tar.gz](https://github.com/Enzo0673/filelabs/releases/latest/download/FileLabs-Linux.tar.gz) |
 
 Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur. **Aucune installation requise.**
 
-> Une version en ligne est également disponible pour tester sans rien installer — les fichiers transitent alors par notre serveur et sont supprimés après 1h.
+> Une version en ligne est disponible pour tester sans rien installer — les fichiers transitent alors par notre serveur et sont supprimés automatiquement après 1h.
 
 ---
 
-## Outils disponibles
+## Outils disponibles (25)
 
 ### Multi-fichiers
 - **Compression en lot** — Compresser jusqu'à 20 fichiers (images + PDF) en une fois, télécharger un ZIP
 
 ### PDF (14 outils)
+
 | Outil | Description |
 |---|---|
 | Compresser PDF | Réduire le poids d'un PDF |
@@ -39,46 +77,51 @@ Double-cliquez sur l'exécutable → l'application s'ouvre dans votre navigateur
 | Diviser PDF | Extraire des pages ou découper un PDF |
 | PDF → JPG | Convertir chaque page en image JPG |
 | JPG → PDF | Assembler des images en PDF |
-| Rotation PDF | Faire pivoter des pages |
-| Filigrane PDF | Ajouter un texte en filigrane |
-| Numéroter pages | Ajouter des numéros de page |
-| Supprimer pages | Retirer des pages d'un PDF |
+| Rotation PDF | Faire pivoter des pages individuellement ou tout le document |
+| Filigrane PDF | Ajouter un texte en filigrane (position, couleur, opacité) |
+| Numéroter pages | Ajouter des numéros de page en bas ou en haut |
+| Supprimer pages | Retirer des pages par numéro ou plage |
 | Déverrouiller PDF | Supprimer la protection par mot de passe |
-| Protéger PDF | Ajouter un mot de passe |
-| Réparer PDF | Reconstruire un PDF corrompu |
+| Protéger PDF | Ajouter un mot de passe AES-256 |
+| Réparer PDF | Reconstruire un PDF corrompu, supprimer pages vides |
 | Extraire texte | Copier le texte d'un PDF natif |
 | Word / Excel → PDF | Convertir .docx, .xlsx, .pptx en PDF (nécessite LibreOffice) |
 
 ### Images (5 outils)
+
 | Outil | Description |
 |---|---|
 | Compresser image | Réduire le poids — JPEG, PNG, WebP, GIF, BMP, TIFF |
-| Redimensionner | Changer les dimensions |
-| Convertir format | Passer d'un format à un autre |
-| Recadrer | Rogner une image |
-| Rotation / Flip | Faire pivoter ou retourner |
+| Redimensionner | Changer les dimensions en pixels |
+| Convertir format | Passer d'un format à un autre (JPG, PNG, WebP, BMP…) |
+| Recadrer | Rogner une zone de l'image |
+| Rotation / Flip | Faire pivoter ou retourner l'image |
 
-### Vidéo (3 outils)
-- **Compresser vidéo** — MP4, MOV, AVI, MKV, WebM (codecs H.264 / H.265 / VP9), progression en temps réel
-- **Éditer vidéo** — Découper (trim), redimensionner, fusionner et ajouter du texte
-- **Video Downloader** — Télécharger une vidéo depuis YouTube, TikTok, Instagram, etc. en MP4 (toutes résolutions disponibles) ou MP3 (320k)
+### Vidéo (4 outils)
+
+- **Compresser vidéo** — MP4, MOV, AVI, MKV, WebM · codecs H.264 / H.265 / VP9 · progression en temps réel via SSE
+- **Éditer vidéo** — Découper (trim), redimensionner, fusionner et ajouter du texte/sous-titres
+- **Video Downloader** — Télécharger depuis YouTube, TikTok, Instagram, etc. en MP4 (toutes résolutions) ou MP3 320k
+- **Image Downloader** — Extraire les images depuis Instagram, Pinterest, Twitter/X…
 
 ### Archives
-- **Compresser archive** — ZIP, 7z, RAR, TAR, GZ, BZ2, ZST (algorithmes zstd, lzma, gzip, brotli)
+
+- **Compresser archive** — ZIP, 7z, RAR, TAR, GZ, BZ2, ZST · algorithmes zstd, lzma, gzip, brotli
 
 ---
 
-## Pourquoi FileLab ?
+## Pourquoi FileLabs ?
 
-Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. Avec l'app locale, FileLab tourne entièrement sur votre machine :
+Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. FileLabs fonctionne entièrement sur votre machine :
 
-- **100% local** — vos fichiers ne transitent jamais par internet (app locale)
-- **Aucun compte requis** — pas d'inscription, pas de limite de taille
-- **Open source** — le code est auditable
-- **PWA** — installable comme une app, fonctionne hors-ligne
-- **Dark mode** — thème clair/sombre, persisté en localStorage
-- **Comparaison avant/après** — slider interactif sur les images compressées
-- **Téléchargement automatique** — le fichier se télécharge dès la compression terminée
+| Fonctionnalité | FileLabs | Concurrents |
+|---|---|---|
+| 100% local (app) | ✅ | ❌ |
+| Aucun compte | ✅ | ❌ |
+| Open source | ✅ | ❌ |
+| Hors-ligne (PWA) | ✅ | ❌ |
+| Sans limite de taille (app) | ✅ | ❌ |
+| Dark mode natif | ✅ | Partiel |
 
 ---
 
@@ -88,28 +131,33 @@ Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs s
 
 - Python 3.10+
 - FFmpeg dans le PATH (compression vidéo)
-- Poppler (PDF → JPG) : `apt install poppler-utils` / `brew install poppler` / [Windows](https://github.com/oschwartz10612/poppler-windows/releases)
+- Poppler (PDF → JPG) : `apt install poppler-utils` / `brew install poppler` / [Windows builds](https://github.com/oschwartz10612/poppler-windows/releases)
 
 ### Démarrage
 
 ```bash
-git clone https://github.com/Enzo0673/filelab.git
-cd filelab
+git clone https://github.com/Enzo0673/filelabs.git
+cd filelabs
 pip install -r requirements.txt
 py main.py        # Windows
 python main.py    # Linux / Mac
 ```
 
-### Build de l'exécutable
+Ouvre automatiquement `http://localhost:8000` dans votre navigateur.
+
+### Tests
+
+```bash
+pytest tests/
+```
+
+### Build exécutable
 
 ```bash
 pip install pyinstaller
-
 # Placer les binaires FFmpeg + Poppler dans bin/
-# (voir filelab.spec pour les noms attendus)
-
-pyinstaller filelab.spec
-# → dist/FileLab.exe (Windows) ou dist/FileLab (Mac/Linux)
+pyinstaller filelabs.spec
+# → dist/FileLabs.exe (Windows) ou dist/FileLabs (Mac/Linux)
 ```
 
 Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
@@ -126,6 +174,7 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 | Vidéo | ffmpeg-python + FFmpeg (SSE progress), yt-dlp |
 | Archives | zstandard, brotli, lzma, gzip |
 | Frontend | HTML / CSS / JavaScript vanilla |
+| Design | Syne + DM Sans · design system "Ink on Glass" |
 | Aperçu PDF | pdf.js (servi en local) |
 | PWA | Service Worker + manifest.json |
 | Analytics | Umami (sans cookie, RGPD) |
@@ -135,9 +184,9 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 
 ## Sécurité
 
-Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Risk Rating** avec les [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) (`performing-web-application-vulnerability-triage` + `performing-web-application-penetration-test`).
+Audit de sécurité complet via la méthodologie **OWASP Risk Rating** avec les [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills).
 
-16 vulnérabilités identifiées et corrigées sur 3 passes d'audit :
+**26 vulnérabilités identifiées et corrigées** sur 4 passes d'audit :
 
 | Sévérité | Vulnérabilité | CWE | OWASP 2021 |
 |---|---|---|---|
@@ -156,15 +205,26 @@ Un audit de sécurité complet a été réalisé via la méthodologie **OWASP Ri
 | 🟡 Modéré | `opacity` et `dpi` non validés | CWE-20 | A03 - Injection |
 | 🟡 Modéré | `ranges` PDF split non validé | CWE-20 | A03 - Injection |
 | 🟡 Modéré | `position` page-numbers sans whitelist | CWE-20 | A03 - Injection |
-| 🟡 Modéré | `font_color` validé uniquement côté compresseur (defense-in-depth manquante) | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `font_color` validé uniquement côté compresseur | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `format_id` passé sans validation à yt-dlp (injection argument) | CWE-88 | A03 - Injection |
+| 🟡 Modéré | Rate limiter lit `client.host` derrière Render (proxy) | CWE-16 | A05 - Misconfiguration |
+| 🟡 Modéré | `asyncio.get_event_loop()` déprécié (9 occurrences) | CWE-477 | A04 - Insecure Design |
+| 🟡 Modéré | Cleanup download via thread dédié au lieu d'asyncio | CWE-400 | A04 - Insecure Design |
+| 🟡 Modéré | Stem non sanitisé dans arcnames ZIP (batch compress) | CWE-22 | A01 - Broken Access Control |
+| 🟡 Modéré | `output_filename` expose le nom brut dans la réponse | CWE-116 | A03 - Injection |
+| 🟡 Modéré | Fuite mémoire Pillow — images non fermées dans `jpg_to_pdf` | CWE-401 | A04 - Insecure Design |
+| 🟡 Modéré | `target_format` sans whitelist sur `/image/convert` | CWE-20 | A03 - Injection |
+| 🟡 Modéré | `rotation_map` et `pages` sans limite de longueur | CWE-20 | A03 - Injection |
+| 🟡 Modéré | stderr LibreOffice exposé dans le `ValueError` propagé | CWE-209 | A02 - Info Exposure |
 
-Mesures en place :
+**Mesures en place :**
 
-- **Protection SSRF** — validation schéma + résolution DNS avec blocage de toutes les plages IP privées/internes
-- **Rate limiting** correct en production (Render) : 20 req/min par IP sur les endpoints de traitement
-- **Limite de concurrence** — max 3 téléchargements simultanés, timeout 10 min
+- Protection SSRF — validation schéma + résolution DNS avec blocage de toutes les plages IP privées/internes
+- Rate limiting correct en production (Render, derrière load balancer) : 20 req/min par IP réelle (`X-Forwarded-For`)
+- Limite de concurrence — max 3 téléchargements simultanés, timeout 10 min
 - CORS restreint à `localhost`
-- Validation stricte des paramètres côté serveur (whitelists codec, DPI, qualité, couleur…)
+- Validation stricte des paramètres côté serveur (whitelists codec, DPI, qualité, couleur, format…)
+- Magic bytes validation sur tous les uploads (détecte les fichiers renommés)
 - Protection path traversal sur les téléchargements et les routes outils
 - Protection zip bomb sur les archives (ratio, taille décompressée)
 - Fichiers temporaires supprimés automatiquement après 1 heure

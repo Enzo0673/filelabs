@@ -8,7 +8,8 @@
   function getPreferred() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'dark' || saved === 'light') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Default: dark (design is dark-first; respect system only if explicitly light)
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   }
 
   function apply(theme) {
