@@ -10,17 +10,36 @@
 
 ---
 
-## Pourquoi FileLabs ?
+## Benchmarks
 
-Les outils en ligne comme iLovePDF ou Smallpdf envoient vos fichiers sur leurs serveurs. FileLabs fonctionne entièrement sur votre machine — aucune donnée ne quitte votre ordinateur.
+### Performances (mesurées en local, processeur i5)
 
-| | FileLabs | Concurrents |
-|---|:---:|:---:|
-| 100% local (app) | ✅ | ❌ |
-| Aucun compte requis | ✅ | ❌ |
-| Open source | ✅ | ❌ |
-| Hors-ligne (PWA) | ✅ | ❌ |
-| Sans limite de taille (app) | ✅ | ❌ |
+| Opération | Fichier d'entrée | Sortie | Réduction | Temps |
+|---|---|---|---|---|
+| Compresser PDF | 181 KB | 14 KB | **−92%** | 0.15s |
+| Compresser image JPEG | 1.5 MB | 302 KB | **−81%** | 0.18s |
+| Fusionner 2 PDF | 2× 181 KB | 35 KB | — | 0.13s |
+| Diviser PDF (2 plages) | 181 KB | 8 KB | — | 0.08s |
+| Redimensionner image (3000×2000 → 800×600) | 1.5 MB | 13 KB | **−99%** | 0.12s |
+| Convertir JPG → WebP | 1.5 MB | 580 KB | **−63%** | 1.21s |
+
+> Tous les traitements ont lieu sur votre machine — aucun upload réseau.
+
+---
+
+### Comparaison avec la concurrence
+
+| | FileLabs | iLovePDF | Smallpdf | Adobe Acrobat Online |
+|---|:---:|:---:|:---:|:---:|
+| **Traitement** | Local (app) | Serveur | Serveur | Serveur |
+| **Taille max (gratuit)** | Illimitée¹ | 200 MB | Non précisé | ~100 MB |
+| **Compte requis** | Non | Non | **Oui** | **Oui (Adobe ID)** |
+| **Tâches/jour (gratuit)** | Illimitées¹ | Limites par outil | ~2/jour | ~2/jour |
+| **Mode hors-ligne** | ✅ | ❌ | ❌ | ❌ |
+| **Open source** | ✅ | ❌ | ❌ | ❌ |
+| **Prix premium** | Gratuit | €9/mois | ~$12/mois | $14.99/mois |
+
+¹ En mode application locale — la version en ligne (filelabs.onrender.com) impose les limites du serveur.
 
 ---
 
