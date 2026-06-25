@@ -26,7 +26,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/icon-16.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" />
   <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
 </head>
 <body class="home-body">
@@ -34,300 +34,386 @@
 
     <!-- Header -->
     <header class="home-header">
-      <div class="logo">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <rect width="32" height="32" rx="8" fill="#0D9488"/>
-          <path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-        </svg>
-        <span class="logo-text">FileLabs</span>
-      </div>
-      <span class="home-tagline" id="homeTagline">100% local &mdash; vos fichiers ne quittent jamais votre machine</span>
-      <button class="btn-theme" id="btnTheme" title="Basculer thème sombre/clair" aria-label="Basculer thème" onclick="window.__theme.toggle(); updateThemeIcon()">
-        <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </button>
+      <a class="logo-link" href="/">
+        <div class="logo-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M3 9L7.5 4.5L12 9L16.5 4.5" stroke="#F7F4EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 13.5L7.5 9L12 13.5L16.5 9" stroke="#F7F4EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+          </svg>
+        </div>
+        <span class="logo-text-home">FileLabs</span>
+      </a>
+      <nav class="home-nav">
+        <a class="home-nav-link" href="#outils">Outils</a>
+        <a class="home-nav-link" href="/privacy">Confidentialité</a>
+        <a class="btn-github-home" href="https://github.com/Enzo0673/filelabs" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </nav>
     </header>
 
+    <!-- Ticker -->
+    <div class="ticker-bar" aria-hidden="true">
+      <div class="ticker-track">
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>25 outils</strong> disponibles</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>PDF</strong> — fusionner, diviser, compresser, convertir</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Images</strong> — redimensionner, recadrer, convertir</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Vidéo</strong> — découper, compresser, télécharger</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>100% local</strong> — vos fichiers ne quittent jamais votre machine</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Open source</strong> — MIT licence</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Aucun compte</strong> requis</span>
+        <!-- duplicate for seamless loop -->
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>25 outils</strong> disponibles</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>PDF</strong> — fusionner, diviser, compresser, convertir</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Images</strong> — redimensionner, recadrer, convertir</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Vidéo</strong> — découper, compresser, télécharger</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>100% local</strong> — vos fichiers ne quittent jamais votre machine</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Open source</strong> — MIT licence</span>
+        <span class="ticker-item"><span class="ticker-dot"></span><strong>Aucun compte</strong> requis</span>
+      </div>
+    </div>
+
     <!-- Hero -->
-    <div class="hero">
-      <div class="hero-eyebrow">Outils fichiers gratuits &amp; open source</div>
-      <h1 class="hero-title">Tous vos outils fichiers,<br><em>en un seul endroit</em></h1>
-      <p class="hero-sub">Compressez, convertissez et éditez vos PDF, images, vidéos et archives — sans compte, sans limite.</p>
-      <div class="hero-badges">
-        <span class="hero-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <section class="home-hero">
+      <div class="home-hero-left">
+        <div class="home-eyebrow">Outils fichiers gratuits &amp; open source</div>
+        <h1 class="home-hero-title">Tous vos outils<br>fichiers,<br><em>en un seul endroit</em></h1>
+        <p class="home-hero-sub">Compressez, convertissez et éditez vos PDF, images, vidéos et archives — sans compte, sans limite, sans envoi de données.</p>
+        <div class="home-hero-cta">
+          <a class="btn-hero-primary" href="#outils">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            Voir les outils
+          </a>
+          <a class="btn-hero-secondary" href="https://github.com/Enzo0673/filelabs" target="_blank" rel="noopener">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            Code source
+          </a>
+        </div>
+      </div>
+      <div class="home-hero-right">
+        <div class="home-stat-card ab">
+          <div class="home-stat-num">25</div>
+          <div class="home-stat-lbl">outils disponibles</div>
+        </div>
+        <div class="home-stat-card ar">
+          <div class="home-stat-num">0</div>
+          <div class="home-stat-lbl">compte requis</div>
+        </div>
+        <div class="home-stat-card av">
+          <div class="home-stat-num">MIT</div>
+          <div class="home-stat-lbl">open source</div>
+        </div>
+        <div class="home-stat-card dark">
+          <div class="home-stat-num" id="homeTagline">100% local — vos fichiers ne quittent jamais votre machine</div>
+          <div class="home-stat-lbl">garanti</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Badge bar -->
+    <div class="home-badge-bar">
+      <div class="home-badge-bar-inner">
+        <div class="home-badge-item">
+          <span class="home-badge-dot"></span>
           100% gratuit
-        </span>
-        <span class="hero-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <div class="home-badge-item">
+          <span class="home-badge-dot"></span>
           Sans inscription
-        </span>
-        <span class="hero-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="home-badge-item">
+          <span class="home-badge-dot"></span>
+          Traitement local
+        </div>
+        <div class="home-badge-item">
+          <span class="home-badge-dot"></span>
           Open source
-        </span>
-        <span class="hero-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Dark mode
-        </span>
+        </div>
+        <div class="home-badge-item">
+          <span class="home-badge-dot"></span>
+          Aucune limite de taille
+        </div>
       </div>
     </div>
 
-    <!-- Stats bar -->
-    <div class="stats-bar">
-      <div class="stat-block">
-        <div class="stat-num">25</div>
-        <div class="stat-desc">outils disponibles</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-num">0</div>
-        <div class="stat-desc">compte requis</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-num">100%</div>
-        <div class="stat-desc">gratuit &amp; local</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-num">MIT</div>
-        <div class="stat-desc">open source</div>
-      </div>
-    </div>
+    <!-- Tool sections -->
+    <div class="home-tools-section" id="outils">
 
-    <!-- Catégorie Multi-fichiers -->
-    <section class="tool-section">
-      <div class="section-header">
-        <span class="section-icon arc-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="5" width="16" height="13" rx="1.5" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
-            <path d="M6 5V3a1 1 0 011-1h6a1 1 0 011 1v2" stroke="#f59e0b" stroke-width="1.5"/>
-            <path d="M7 10h6M7 13h4" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <h2 class="section-title">Multi-fichiers</h2>
-        <span class="section-count">1</span>
+      <!-- Multi-fichiers -->
+      <div class="home-cat-block home-cat-multi">
+        <div class="home-cat-header">
+          <h2 class="home-cat-label">Multi-fichiers</h2>
+          <span class="home-cat-count">1 OUTIL</span>
+          <div class="home-cat-line"></div>
+        </div>
+        <div class="home-tools-grid">
+          <a class="home-tool-card" href="/tool/compress-batch">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            </div>
+            <span class="home-tool-name">Compression en lot</span>
+            <span class="home-tool-desc">Compresser jusqu'à 20 fichiers en une fois, télécharger un ZIP</span>
+          </a>
+        </div>
       </div>
-      <div class="tools-grid">
-        <a class="tool-card" href="/tool/compress-batch">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></span>
-          <span class="tool-name">Compression en lot</span>
-          <span class="tool-desc">Compresser jusqu'à 20 fichiers en une fois, télécharger un ZIP</span>
-        </a>
-      </div>
-    </section>
 
-    <!-- Catégorie PDF -->
-    <section class="tool-section">
-      <div class="section-header">
-        <span class="section-icon pdf-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 2h8l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="#ef4444" stroke-width="1.5" fill="none"/>
-            <path d="M12 2v4h4" stroke="#ef4444" stroke-width="1.5"/>
-            <path d="M7 11h6M7 14h4" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <h2 class="section-title">PDF</h2>
-        <span class="section-count">14</span>
+      <!-- PDF -->
+      <div class="home-cat-block home-cat-pdf">
+        <div class="home-cat-header">
+          <h2 class="home-cat-label">PDF</h2>
+          <span class="home-cat-count">14 OUTILS</span>
+          <div class="home-cat-line"></div>
+        </div>
+        <div class="home-tools-grid">
+          <a class="home-tool-card" href="/tool/merge-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <span class="home-tool-name">Fusionner PDF</span>
+            <span class="home-tool-desc">Combiner plusieurs PDF en un</span>
+          </a>
+          <a class="home-tool-card" href="/tool/split-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </div>
+            <span class="home-tool-name">Diviser PDF</span>
+            <span class="home-tool-desc">Extraire des pages d'un PDF</span>
+          </a>
+          <a class="home-tool-card" href="/tool/compress-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            </div>
+            <span class="home-tool-name">Compresser PDF</span>
+            <span class="home-tool-desc">Réduire le poids d'un PDF</span>
+          </a>
+          <a class="home-tool-card" href="/tool/pdf-to-jpg">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <span class="home-tool-name">PDF vers JPG</span>
+            <span class="home-tool-desc">Convertir chaque page en image</span>
+          </a>
+          <a class="home-tool-card" href="/tool/jpg-to-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <span class="home-tool-name">JPG vers PDF</span>
+            <span class="home-tool-desc">Assembler des images en PDF</span>
+          </a>
+          <a class="home-tool-card" href="/tool/rotate-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            </div>
+            <span class="home-tool-name">Rotation PDF</span>
+            <span class="home-tool-desc">Pivoter les pages d'un PDF</span>
+          </a>
+          <a class="home-tool-card" href="/tool/watermark-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="home-tool-name">Filigrane PDF</span>
+            <span class="home-tool-desc">Ajouter un texte en filigrane</span>
+          </a>
+          <a class="home-tool-card" href="/tool/page-numbers-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+            </div>
+            <span class="home-tool-name">Numéroter pages</span>
+            <span class="home-tool-desc">Ajouter des numéros de page</span>
+          </a>
+          <a class="home-tool-card" href="/tool/delete-pages-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </div>
+            <span class="home-tool-name">Supprimer pages</span>
+            <span class="home-tool-desc">Retirer des pages d'un PDF</span>
+          </a>
+          <a class="home-tool-card" href="/tool/unlock-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 019.9-1"/></svg>
+            </div>
+            <span class="home-tool-name">Déverrouiller PDF</span>
+            <span class="home-tool-desc">Supprimer le mot de passe</span>
+          </a>
+          <a class="home-tool-card" href="/tool/protect-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <span class="home-tool-name">Protéger PDF</span>
+            <span class="home-tool-desc">Ajouter un mot de passe</span>
+          </a>
+          <a class="home-tool-card" href="/tool/repair-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            </div>
+            <span class="home-tool-name">Réparer PDF</span>
+            <span class="home-tool-desc">Reconstruire un PDF corrompu</span>
+          </a>
+          <a class="home-tool-card" href="/tool/extract-text-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <span class="home-tool-name">Extraire texte</span>
+            <span class="home-tool-desc">Copier le texte d'un PDF</span>
+          </a>
+          <a class="home-tool-card" href="/tool/office-to-pdf">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <span class="home-tool-name">Word / Excel → PDF</span>
+            <span class="home-tool-desc">Convertir .docx, .xlsx, .pptx en PDF</span>
+          </a>
+        </div>
       </div>
-      <div class="tools-grid">
-        <a class="tool-card" href="/tool/merge-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></span>
-          <span class="tool-name">Fusionner PDF</span>
-          <span class="tool-desc">Combiner plusieurs PDF en un</span>
-        </a>
-        <a class="tool-card" href="/tool/split-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-          <span class="tool-name">Diviser PDF</span>
-          <span class="tool-desc">Extraire des pages d'un PDF</span>
-        </a>
-        <a class="tool-card" href="/tool/compress-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>
-          <span class="tool-name">Compresser PDF</span>
-          <span class="tool-desc">Réduire le poids d'un PDF</span>
-        </a>
-        <a class="tool-card" href="/tool/pdf-to-jpg">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
-          <span class="tool-name">PDF vers JPG</span>
-          <span class="tool-desc">Convertir chaque page en image</span>
-        </a>
-        <a class="tool-card" href="/tool/jpg-to-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-          <span class="tool-name">JPG vers PDF</span>
-          <span class="tool-desc">Assembler des images en PDF</span>
-        </a>
-        <a class="tool-card" href="/tool/rotate-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></span>
-          <span class="tool-name">Rotation PDF</span>
-          <span class="tool-desc">Pivoter les pages d'un PDF</span>
-        </a>
-        <a class="tool-card" href="/tool/watermark-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-          <span class="tool-name">Filigrane PDF</span>
-          <span class="tool-desc">Ajouter un texte en filigrane</span>
-        </a>
-        <a class="tool-card" href="/tool/page-numbers-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></span>
-          <span class="tool-name">Numéroter pages</span>
-          <span class="tool-desc">Ajouter des numéros de page</span>
-        </a>
-        <a class="tool-card" href="/tool/delete-pages-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></span>
-          <span class="tool-name">Supprimer pages</span>
-          <span class="tool-desc">Retirer des pages d'un PDF</span>
-        </a>
-        <a class="tool-card" href="/tool/unlock-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 019.9-1"/></svg></span>
-          <span class="tool-name">Déverrouiller PDF</span>
-          <span class="tool-desc">Supprimer le mot de passe</span>
-        </a>
-        <a class="tool-card" href="/tool/protect-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
-          <span class="tool-name">Protéger PDF</span>
-          <span class="tool-desc">Ajouter un mot de passe</span>
-        </a>
-        <a class="tool-card" href="/tool/repair-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
-          <span class="tool-name">Réparer PDF</span>
-          <span class="tool-desc">Reconstruire un PDF corrompu</span>
-        </a>
-        <a class="tool-card" href="/tool/extract-text-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-          <span class="tool-name">Extraire texte</span>
-          <span class="tool-desc">Copier le texte d'un PDF</span>
-        </a>
-        <a class="tool-card" href="/tool/office-to-pdf">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
-          <span class="tool-name">Word / Excel → PDF</span>
-          <span class="tool-desc">Convertir .docx, .xlsx, .pptx en PDF</span>
-        </a>
-      </div>
-    </section>
 
-    <!-- Catégorie Image -->
-    <section class="tool-section">
-      <div class="section-header">
-        <span class="section-icon img-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="2" width="16" height="16" rx="3" stroke="#6366f1" stroke-width="1.5" fill="none"/>
-            <circle cx="7" cy="7" r="1.5" fill="#6366f1"/>
-            <path d="M2 13l4-4 3 3 3-3 4 4" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <h2 class="section-title">Images</h2>
-        <span class="section-count">5</span>
+      <!-- Images -->
+      <div class="home-cat-block home-cat-image">
+        <div class="home-cat-header">
+          <h2 class="home-cat-label">Images</h2>
+          <span class="home-cat-count">5 OUTILS</span>
+          <div class="home-cat-line"></div>
+        </div>
+        <div class="home-tools-grid">
+          <a class="home-tool-card" href="/tool/compress-image">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <span class="home-tool-name">Compresser image</span>
+            <span class="home-tool-desc">Réduire le poids sans perte visible</span>
+          </a>
+          <a class="home-tool-card" href="/tool/resize-image">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </div>
+            <span class="home-tool-name">Redimensionner</span>
+            <span class="home-tool-desc">Changer la taille en pixels</span>
+          </a>
+          <a class="home-tool-card" href="/tool/convert-image">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+            </div>
+            <span class="home-tool-name">Convertir format</span>
+            <span class="home-tool-desc">JPG, PNG, WebP, BMP…</span>
+          </a>
+          <a class="home-tool-card" href="/tool/crop-image">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 2 6 18 22 18"/><polyline points="2 6 18 6 18 22"/></svg>
+            </div>
+            <span class="home-tool-name">Recadrer</span>
+            <span class="home-tool-desc">Couper une zone de l'image</span>
+          </a>
+          <a class="home-tool-card" href="/tool/rotate-image">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            </div>
+            <span class="home-tool-name">Rotation / Flip</span>
+            <span class="home-tool-desc">Pivoter ou retourner l'image</span>
+          </a>
+        </div>
       </div>
-      <div class="tools-grid">
-        <a class="tool-card" href="/tool/compress-image">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
-          <span class="tool-name">Compresser image</span>
-          <span class="tool-desc">Réduire le poids sans perte visible</span>
-        </a>
-        <a class="tool-card" href="/tool/resize-image">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></span>
-          <span class="tool-name">Redimensionner</span>
-          <span class="tool-desc">Changer la taille en pixels</span>
-        </a>
-        <a class="tool-card" href="/tool/convert-image">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></span>
-          <span class="tool-name">Convertir format</span>
-          <span class="tool-desc">JPG, PNG, WebP, BMP...</span>
-        </a>
-        <a class="tool-card" href="/tool/crop-image">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 2 6 18 22 18"/><polyline points="2 6 18 6 18 22"/></svg></span>
-          <span class="tool-name">Recadrer</span>
-          <span class="tool-desc">Couper une zone de l'image</span>
-        </a>
-        <a class="tool-card" href="/tool/rotate-image">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></span>
-          <span class="tool-name">Rotation / Flip</span>
-          <span class="tool-desc">Pivoter ou retourner l'image</span>
-        </a>
-      </div>
-    </section>
 
-    <!-- Catégorie Vidéo -->
-    <section class="tool-section">
-      <div class="section-header">
-        <span class="section-icon vid-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="4" width="12" height="12" rx="2" stroke="#10b981" stroke-width="1.5" fill="none"/>
-            <path d="M14 8l4-2v8l-4-2V8z" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
-          </svg>
-        </span>
-        <h2 class="section-title">Vidéo</h2>
-        <span class="section-count">4</span>
+      <!-- Vidéo -->
+      <div class="home-cat-block home-cat-video">
+        <div class="home-cat-header">
+          <h2 class="home-cat-label">Vidéo</h2>
+          <span class="home-cat-count">4 OUTILS</span>
+          <div class="home-cat-line"></div>
+        </div>
+        <div class="home-tools-grid">
+          <a class="home-tool-card" href="/tool/compress-video">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            </div>
+            <span class="home-tool-name">Compresser vidéo</span>
+            <span class="home-tool-desc">Réduire le poids d'une vidéo</span>
+          </a>
+          <a class="home-tool-card" href="/tool/edit-video">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <span class="home-tool-name">Éditer vidéo</span>
+            <span class="home-tool-desc">Découper ou redimensionner</span>
+          </a>
+          <a class="home-tool-card" href="/tool/video-downloader">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+            <span class="home-tool-name">Video Downloader</span>
+            <span class="home-tool-desc">Télécharger en MP4 ou MP3</span>
+          </a>
+          <a class="home-tool-card" href="/tool/image-downloader">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <span class="home-tool-name">Image Downloader</span>
+            <span class="home-tool-desc">Instagram, Pinterest, Twitter/X…</span>
+          </a>
+        </div>
       </div>
-      <div class="tools-grid">
-        <a class="tool-card" href="/tool/compress-video">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
-          <span class="tool-name">Compresser vidéo</span>
-          <span class="tool-desc">Réduire le poids d'une vidéo</span>
-        </a>
-        <a class="tool-card" href="/tool/edit-video">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
-          <span class="tool-name">Éditer vidéo</span>
-          <span class="tool-desc">Découper ou redimensionner</span>
-        </a>
-    <a class="tool-card" href="/tool/video-downloader">
-      <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-      <span class="tool-name">Video Downloader</span>
-      <span class="tool-desc">Télécharger en MP4 ou MP3</span>
-    </a>
-    <a class="tool-card" href="/tool/image-downloader">
-      <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
-      <span class="tool-name">Image Downloader</span>
-      <span class="tool-desc">Instagram, Pinterest, Twitter/X…</span>
-    </a>
-      </div>
-    </section>
 
-    <!-- Catégorie Archives -->
-    <section class="tool-section">
-      <div class="section-header">
-        <span class="section-icon arc-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="2" width="16" height="16" rx="3" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
-            <path d="M2 7h16M8 2v5M12 2v5" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <h2 class="section-title">Archives</h2>
-        <span class="section-count">1</span>
+      <!-- Archives -->
+      <div class="home-cat-block home-cat-archive">
+        <div class="home-cat-header">
+          <h2 class="home-cat-label">Archives</h2>
+          <span class="home-cat-count">1 OUTIL</span>
+          <div class="home-cat-line"></div>
+        </div>
+        <div class="home-tools-grid">
+          <a class="home-tool-card" href="/tool/compress-archive">
+            <div class="home-tool-icon-wrap" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            </div>
+            <span class="home-tool-name">Compresser archive</span>
+            <span class="home-tool-desc">ZIP, 7z, RAR, TAR…</span>
+          </a>
+        </div>
       </div>
-      <div class="tools-grid">
-        <a class="tool-card" href="/tool/compress-archive">
-          <span class="tool-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>
-          <span class="tool-name">Compresser archive</span>
-          <span class="tool-desc">ZIP, 7z, RAR, TAR...</span>
-        </a>
-      </div>
-    </section>
 
+    </div><!-- /home-tools-section -->
+
+    <!-- Footer -->
     <footer class="home-footer" id="homeFooter">
-      FileLabs &mdash; 100% local, aucune donnée envoyée sur internet
-      &nbsp;&middot;&nbsp; <a href="/privacy" style="color:inherit;opacity:0.6;text-decoration:underline">Confidentialité</a>
+      <div class="home-footer-inner">
+        <div class="home-footer-left">
+          <span class="home-footer-name">FileLabs</span>
+          <span class="home-footer-copy" id="homeFooterCopy">100% local — aucune donnée envoyée sur internet</span>
+        </div>
+        <nav class="home-footer-links">
+          <a class="home-footer-link" href="/privacy">Confidentialité</a>
+          <a class="home-footer-link" href="https://github.com/Enzo0673/filelabs" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+      </div>
     </footer>
+
+  </div><!-- /home-app -->
+
+  <!-- Drop overlay -->
+  <div id="drop-overlay" aria-hidden="true">
+    <div class="drop-overlay-inner">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1A56F0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div class="drop-overlay-title">Déposer un fichier</div>
+      <div class="drop-overlay-sub">On sélectionne l'outil adapté</div>
+    </div>
   </div>
+
+  <!-- Toast -->
+  <div class="home-toast" id="homeToast" role="status" aria-live="polite"></div>
 
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js');
     }
-    function updateThemeIcon() {
-      const isDark = window.__theme.get() === 'dark';
-      document.getElementById('iconMoon').style.display = isDark ? 'none' : '';
-      document.getElementById('iconSun').style.display = isDark ? '' : 'none';
-    }
-    document.addEventListener('DOMContentLoaded', updateThemeIcon);
 
     // Adapter le tagline et le footer selon version locale ou web
     (function () {
-      const h = location.hostname;
-      const isLocal = h === '' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.');
+      var h = location.hostname;
+      var isLocal = h === '' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.');
       if (!isLocal) {
-        const tagline = document.getElementById('homeTagline');
+        var tagline = document.getElementById('homeTagline');
         if (tagline) tagline.textContent = 'Version en ligne — fichiers supprimés après 1h';
-        const footer = document.getElementById('homeFooter');
-        if (footer) footer.innerHTML = 'FileLabs &mdash; fichiers supprimés automatiquement après 1h &nbsp;&middot;&nbsp; <a href="/privacy" style="color:inherit;opacity:0.6;text-decoration:underline">Confidentialité</a>';
+        var footerCopy = document.getElementById('homeFooterCopy');
+        if (footerCopy) footerCopy.textContent = 'fichiers supprimés automatiquement après 1h';
       }
     })();
   </script>
