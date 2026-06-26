@@ -233,3 +233,36 @@ def test_processing_paths_includes_media():
         "/media/ absent de _PROCESSING_PATHS — les routes image-downloader "
         "ne sont pas protégées par le rate limiter."
     )
+
+
+# ─── Magic bytes — /video/to-text ───────────────────────────────────────────
+
+def test_is_exec_magic_rejects_windows_pe():
+    import main as app_module
+    assert app_module._is_exec_magic(b'\x4d\x5a\x90\x00\x03\x00') is True  # MZ
+
+def test_is_exec_magic_rejects_elf():
+    import main as app_module
+    assert app_module._is_exec_magic(b'\x7fELF\x02\x01\x01\x00') is True
+
+def test_is_exec_magic_rejects_php():
+    import main as app_module
+    assert app_module._is_exec_magic(b'<?php echo "hi";') is True
+
+def test_is_exec_magic_rejects_html():
+    import main as app_module
+    assert app_module._is_exec_magic(b'<html><body>') is True
+    assert app_module._is_exec_magic(b'<!DOCTYPE html>') is True
+
+def test_is_exec_magic_accepts_mp3_id3():
+    import main as app_module
+    assert app_module._is_exec_magic(b'ID3\x03\x00\x00\x00') is False
+
+def test_is_exec_magic_accepts_mkv():
+    import main as app_module
+    assert app_module._is_exec_magic(b'\x1a\x45\xdf\xa3\x9f') is False
+
+def test_is_exec_magic_accepts_unknown():
+    """Un fichier sans signature connue doit passer (permissif)."""
+    import main as app_module
+    assert app_module._is_exec_magic(b'\x00\x00\x00\x20\x66\x74\x79\x70') is False  # MP4 ftyp

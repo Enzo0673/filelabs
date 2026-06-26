@@ -1351,6 +1351,32 @@ async def video_add_text(
         input_path.unlink(missing_ok=True)
 
 
+# ---- Validation magic bytes (deny-list exécutables/scripts) ----
+_EXEC_SIGNATURES: list[bytes] = [
+    b'\x4d\x5a',      # Windows PE (MZ)
+    b'\x7fELF',       # Linux/Unix ELF
+    b'<?php',         # PHP script
+    b'<?Ph',          # PHP case variation
+    b'<html',         # HTML
+    b'<!DOC',         # HTML DOCTYPE
+    b'PK\x03\x04',   # ZIP archive (Office, JAR…)
+    b'#!/',            # Shell shebang
+]
+
+def _is_exec_magic(header: bytes) -> bool:
+    """Retourne True si les premiers octets correspondent à un exécutable ou script connu."""
+    h = header[:8]
+    for sig in _EXEC_SIGNATURES:
+        sig_len = len(sig)
+        if sig[0:1] < b'\x80':  # ASCII/text signature — compare case-insensitively
+            if h[:sig_len].lower() == sig.lower():
+                return True
+        else:  # Binary signature — compare as-is
+            if h[:sig_len] == sig:
+                return True
+    return False
+
+
 # ---- Transcription vidéo/audio → texte ----
 _VALID_WHISPER_MODELS = {"tiny", "base", "small", "medium"}
 _VALID_MEDIA_EXTS = {
@@ -1381,6 +1407,12 @@ async def video_to_text(
     # Langue : "auto" → None côté transcription
     if language not in ("auto", "fr", "en", "es", "de", "it", "pt", "nl", "ar", "zh", "ja"):
         raise HTTPException(status_code=400, detail="Langue invalide.")
+
+    # Magic bytes — rejeter les exécutables et scripts déguisés en média
+    header = await file.read(8)
+    await file.seek(0)
+    if _is_exec_magic(header):
+        raise HTTPException(status_code=400, detail="Format de fichier non supporté.")
 
     uid = uuid.uuid4().hex
     input_path = UPLOAD_DIR / f"{uid}_input{ext}"
