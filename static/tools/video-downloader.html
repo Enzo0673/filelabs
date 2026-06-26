@@ -323,7 +323,11 @@
       const btn = document.createElement("button");
       btn.className = "format-btn" + (i === 0 ? " selected" : "");
       btn.dataset.formatId = fmt.format_id;
-      btn.innerHTML = `<span class="fmt-icon">🎬</span>${fmt.label}`;
+      const icon = document.createElement('span');
+      icon.className = 'fmt-icon';
+      icon.textContent = '🎬';
+      btn.appendChild(icon);
+      btn.appendChild(document.createTextNode(fmt.label));
       btn.onclick = () => {
         document.querySelectorAll(".format-btn").forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
