@@ -37,6 +37,14 @@ def _validate_url(url: str) -> None:
     """
     Valide l'URL et bloque les IPs privées/internes (SSRF).
 
+    Limitation connue (accepted risk) : TOCTOU DNS rebinding.
+    Cette fonction résout le DNS au moment de la validation, mais yt-dlp
+    effectue sa propre résolution DNS lors du téléchargement. Un attacker
+    contrôlant un domaine avec un TTL très court pourrait changer la résolution
+    entre ces deux instants. Atténuants : timing difficile à maîtriser, yt-dlp
+    timeout à 30s, et l'attaque nécessite un contrôle DNS externe.
+    Mitigation complète : utiliser un proxy DNS filtrant (hors périmètre).
+
     Raises:
         DownloaderError: URL invalide ou IP interne détectée
     """
