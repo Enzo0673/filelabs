@@ -222,3 +222,14 @@ def test_download_images_validates_img_url():
             with tempfile.TemporaryDirectory() as tmp:
                 with pytest.raises(DownloaderError, match="non autorisée"):
                     download_images("https://www.instagram.com/p/abc/", [0], Path(tmp))
+
+
+# ─── Rate limit — /media/ couvert ──────────────────────────────────────────
+
+def test_processing_paths_includes_media():
+    """_PROCESSING_PATHS doit inclure /media/ pour le rate limiting."""
+    import main as app_module
+    assert "/media/" in app_module._PROCESSING_PATHS, (
+        "/media/ absent de _PROCESSING_PATHS — les routes image-downloader "
+        "ne sont pas protégées par le rate limiter."
+    )

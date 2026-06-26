@@ -145,7 +145,7 @@ _rate_buckets: dict = {}  # {ip: [timestamp, ...]}
 _RATE_LIMIT = 20          # requêtes max
 _RATE_WINDOW = 60         # par fenêtre de 60s
 _RATE_LAST_PURGE = time.time()
-_PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/")
+_PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/", "/media/")
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
