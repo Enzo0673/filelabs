@@ -153,3 +153,72 @@ def test_extract_text_structure():
         assert "total_chars" in result
         assert "is_scanned" in result
         assert len(result["pages"]) == 3
+
+
+# ─── SSRF — _validate_url dans download_images ──────────────────────────────
+
+from compressors.image.downloader import _validate_url
+from compressors.media.downloader import DownloaderError
+
+def test_validate_url_blocks_private_ip():
+    """_validate_url doit rejeter les IPs privées."""
+    with pytest.raises(DownloaderError, match="non autorisée"):
+        _validate_url("http://192.168.1.1/image.jpg")
+
+def test_validate_url_blocks_loopback():
+    with pytest.raises(DownloaderError, match="non autorisée"):
+        _validate_url("http://127.0.0.1/image.jpg")
+
+def test_validate_url_blocks_metadata_service():
+    """Bloquer l'IP du metadata service cloud AWS."""
+    with pytest.raises(DownloaderError):
+        _validate_url("http://169.254.169.254/latest/meta-data/")
+
+def test_validate_url_rejects_non_http():
+    with pytest.raises(DownloaderError, match="http"):
+        _validate_url("file:///etc/passwd")
+
+def test_validate_url_rejects_ftp():
+    with pytest.raises(DownloaderError, match="http"):
+        _validate_url("ftp://example.com/image.jpg")
+
+from unittest.mock import patch, MagicMock
+
+def test_download_images_validates_img_url():
+    """download_images() doit rejeter les img_url pointant vers des IPs privées.
+
+    Sans le fix, subprocess.run serait appelé avec l'URL interne (SSRF).
+    Avec le fix, _validate_url lève DownloaderError avant d'atteindre subprocess.
+    On patche subprocess.run pour simuler un succès afin d'isoler la validation.
+    """
+    import tempfile
+    from pathlib import Path
+    from compressors.image.downloader import download_images
+
+    fake_info = {
+        "title": "Test",
+        "images": [{"index": 0, "thumbnail": "http://192.168.1.1/img.jpg",
+                     "ext": "jpg", "url": "http://192.168.1.1/img.jpg"}],
+    }
+
+    def fake_subprocess_run(cmd, **kwargs):
+        # Simule un succès de yt-dlp en créant le fichier destination
+        dest = None
+        for i, arg in enumerate(cmd):
+            if arg == "-o" and i + 1 < len(cmd):
+                dest = Path(cmd[i + 1])
+                break
+        if dest:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(b"\xff\xd8\xff\xe0")  # fake JPEG header
+        result = MagicMock()
+        result.returncode = 0
+        result.stdout = ""
+        result.stderr = ""
+        return result
+
+    with patch("compressors.image.downloader.get_media_info", return_value=fake_info):
+        with patch("compressors.image.downloader.subprocess.run", side_effect=fake_subprocess_run):
+            with tempfile.TemporaryDirectory() as tmp:
+                with pytest.raises(DownloaderError, match="non autorisée"):
+                    download_images("https://www.instagram.com/p/abc/", [0], Path(tmp))

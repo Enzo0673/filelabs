@@ -157,6 +157,7 @@ def download_images(url: str, indices: list[int], output_dir: Path) -> Path:
 
     for img in selected:
         img_url = img["url"]
+        _validate_url(img_url)          # CWE-918 : re-valider l'URL issue de yt-dlp
         ext = img["ext"]
         dest = output_dir / f"image_{img['index']}.{ext}"
         try:
