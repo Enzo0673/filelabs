@@ -167,7 +167,7 @@ Les builds sont automatisés via GitHub Actions à chaque tag `v*`.
 
 ## Sécurité
 
-Audit complet via la méthodologie **OWASP Risk Rating** — 26 vulnérabilités identifiées et corrigées.
+Audit complet via la méthodologie **OWASP Risk Rating** — 26 vulnérabilités identifiées, 19 corrigées (13 passes 1-2 + 6 passe 3).
 
 **Mesures en place :**
 
