@@ -44,3 +44,6 @@ _patch_*.py
 # Artefacts Claude Code locaux
 .claude/
 CLAUDE-FABLE-5.md
+
+# Brainstorming visual companion
+.superpowers/
