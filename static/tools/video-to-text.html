@@ -288,7 +288,14 @@
       (data.segments || []).forEach(seg => {
         const row = document.createElement('div');
         row.className = 'seg-row';
-        row.innerHTML = `<div class="seg-time">${fmtTime(seg.start)} → ${fmtTime(seg.end)}</div><div class="seg-text">${seg.text.trim()}</div>`;
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'seg-time';
+        timeDiv.textContent = `${fmtTime(seg.start)} → ${fmtTime(seg.end)}`;
+        const textDiv = document.createElement('div');
+        textDiv.className = 'seg-text';
+        textDiv.textContent = seg.text.trim();
+        row.appendChild(timeDiv);
+        row.appendChild(textDiv);
         list.appendChild(row);
       });
 
