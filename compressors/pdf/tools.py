@@ -185,7 +185,7 @@ def rotate_pdf(input_path: Path, output_path: Path, angle: int = 90, pages: str 
         if pages == "all":
             target_pages = list(range(total))
         else:
-            target_pages = [p-1 for p in _parse_ranges(pages, total)[0]]
+            target_pages = [p-1 for group in _parse_ranges(pages, total) for p in group]
 
         for i in target_pages:
             if 0 <= i < total:
@@ -475,10 +475,12 @@ def repair_pdf(
             object_stream_mode=pikepdf.ObjectStreamMode.generate,
         )
 
+    with pikepdf.open(output_path) as _check:
+        pages_remaining = len(_check.pages)
     return {
         "output": output_path,
         "removed_pages": removed,
-        "pages_remaining": len(pikepdf.open(output_path).pages),
+        "pages_remaining": pages_remaining,
         "annotations_flattened": flatten_annotations,
     }
 
@@ -496,7 +498,6 @@ def _is_blank_page(page) -> bool:
         else:
             data = contents.read_bytes()
         # Nettoyer les opérateurs PDF triviaux (save/restore, matrix, etc.)
-        import re
         stripped = re.sub(
             rb'\s*(q|Q|cm|w|J|j|M|d|ri|i|gs|W|n)\s*', b'', data
         ).strip()

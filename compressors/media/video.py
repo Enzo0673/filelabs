@@ -141,10 +141,11 @@ def compress_video(
 
     # Lancer ffmpeg avec progression sur stderr
     cmd = ffmpeg.compile(out, overwrite_output=True)
-    # Remplacer -loglevel error par stats pour avoir les lignes de progression
+    # Supprimer -loglevel pour que ffmpeg émette les lignes de progression
     try:
         idx = cmd.index("-loglevel")
-        cmd[idx + 1] = "error"
+        cmd.pop(idx + 1)
+        cmd.pop(idx)
     except ValueError:
         pass
     cmd += ["-progress", "pipe:2", "-nostats"]

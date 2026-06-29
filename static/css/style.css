@@ -3,7 +3,7 @@
    Dark editorial, Syne + DM Sans, teal accent on near-black
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Space+Mono:wght@400;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -13,8 +13,6 @@
   --primary-dim:   #0f766e;
   --primary-glow:  rgba(13,148,136,.14);
   --primary-muted: rgba(13,148,136,.07);
-  --cta:           #1A56F0;
-  --cta-dark:      #1444C4;
   --bg:            #F7F4EE;
   --bg-2:          #EDE9DF;
   --surface:       #FFFFFF;
@@ -103,6 +101,13 @@ body {
   gap: 20px;
 }
 
+/* Conteneur principal — pages outils */
+main.main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* ---- Header (tool pages) ---- */
 .header {
   position: fixed;
@@ -111,7 +116,7 @@ body {
   right: 0;
   z-index: 100;
   height: 60px;
-  background: rgba(247,244,238,0.92);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-subtle);
@@ -219,7 +224,7 @@ body {
   transition: background var(--transition), transform var(--transition);
   font-family: var(--font-body);
 }
-.btn-browse:hover { background: #5ee8d8; transform: translateY(-1px); }
+.btn-browse:hover { background: var(--primary-dim); transform: translateY(-1px); }
 .btn-browse:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .drop-formats { font-size: .75rem; color: var(--text-dim); margin-top: 4px; }
 
@@ -359,9 +364,9 @@ body {
   letter-spacing: -.2px;
 }
 .btn-compress:hover {
-  background: #5ee8d8;
+  background: var(--primary-dim);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(45,212,191,.25);
+  box-shadow: 0 4px 16px var(--primary-glow);
 }
 .btn-compress:active { transform: translateY(0); }
 .btn-compress:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
@@ -386,7 +391,7 @@ body {
 }
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), #5ee8d8);
+  background: linear-gradient(90deg, var(--primary), var(--primary-dim));
   border-radius: 99px;
   width: 0%;
   transition: width 200ms ease;
@@ -709,7 +714,6 @@ body {
    ========================================================= */
 
 /* Polices home */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
   /* Palette cream */
@@ -725,7 +729,6 @@ body {
   --home-ink-dim:     #A39E99;
   --home-blue:        #1A56F0;
   --home-blue-dim:    #1444C4;
-  --home-blue-light:  rgba(26,86,240,0.08);
   --home-red:         #E63946;
   --home-violet:      #7C3AED;
   --home-green:       #059669;
@@ -742,6 +745,11 @@ body.home-body {
   padding: 0;
   background: var(--home-bg);
   color: var(--home-ink);
+}
+.home-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---- Sticky header ---- */

@@ -54,7 +54,7 @@
     <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
   </div>
   <script src="/static/js/utils.js"></script>
-  <script src="/js/env.js"></script>
+  <script src="/static/js/env.js"></script>
   <script>
     const panels = ['dropZone','progressPanel','resultPanel','errorPanel'].map(id => document.getElementById(id));
     function showPanel(p) { panels.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }

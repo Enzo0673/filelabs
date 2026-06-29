@@ -7,7 +7,6 @@ Pour les archives existantes (ZIP, 7Z, RAR...) : ré-archivage avec meilleure co
 from pathlib import Path
 import zipfile
 import tarfile
-import io
 import os
 import shutil
 import tempfile
