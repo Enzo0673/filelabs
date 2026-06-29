@@ -44,6 +44,16 @@ _patch_*.py
 # Artefacts Claude Code locaux
 .claude/
 CLAUDE-FABLE-5.md
+skills-lock.json
 
 # Brainstorming visual companion
 .superpowers/
+
+# Skills Claude Code (outillage local, non applicatif)
+.agents/
+
+# Plans/specs internes Superpowers
+docs/superpowers/
+
+# Fichiers bin non-binaires
+bin/LIRE_MOI.txt
