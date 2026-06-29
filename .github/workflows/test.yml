@@ -21,7 +21,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
 
       - name: Run unit tests
         run: pytest tests/test_compressors.py -v
