@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FTE Invoice Split</title>
+
+  <!--
+    LIBRAIRIE SheetJS (lecture/écriture Excel dans le navigateur)
+    Si ce CDN est bloqué par votre réseau SAP :
+      1. Téléchargez le fichier : https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
+      2. Placez-le dans le même dossier que ce fichier HTML sous le nom "xlsx.full.min.js"
+      3. Remplacez la ligne ci-dessous par : <script src="xlsx.full.min.js"></script>
+  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+          integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA=="
+          crossorigin="anonymous"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: '72', '72full', Arial, Helvetica, sans-serif;
+      background: #f5f6f7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .shell-header {
+      background: #0a6ed1;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+    .shell-logo {
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border: 2px solid white;
+      padding: 1px 6px;
+      border-radius: 2px;
+    }
+    .shell-title {
+      color: white;
+      font-size: 0.95rem;
+      opacity: 0.9;
+      border-left: 1px solid rgba(255,255,255,0.4);
+      padding-left: 12px;
+      flex: 1;
+    }
+    .shell-version {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.75rem;
+    }
+    /* Bannière de mise à jour */
+    #update-banner {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: #e8f1fb;
+      border-bottom: 2px solid #0a6ed1;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      color: #0a4fa3;
+    }
+    #update-banner .upd-icon { font-size: 1.1rem; flex-shrink: 0; }
+    #update-banner .upd-text { flex: 1; }
+    #update-banner .upd-text strong { font-weight: 700; }
+    #update-banner .upd-text .upd-changelog {
+      display: block;
+      font-size: 0.78rem;
+      color: #3b6db5;
+      margin-top: 2px;
+    }
+    #update-banner .btn-update {
+      height: 30px;
+      padding: 0 14px;
+      background: #0a6ed1;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #update-banner .btn-update:hover { background: #085caf; }
+    #update-banner .btn-dismiss {
+      background: none;
+      border: none;
+      color: #3b6db5;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 4px;
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    #update-banner .btn-dismiss:hover { opacity: 1; }
+    .page {
+      flex: 1;
+      padding: 24px 32px;
+    }
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #32363a;
+      margin-bottom: 4px;
+    }
+    .page-subtitle {
+      font-size: 0.85rem;
+      color: #6a6d70;
+      margin-bottom: 24px;
+    }
+    .panel {
+      background: white;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      max-width: 580px;
+    }
+    .panel-header {
+      background: #f7f7f7;
+      border-bottom: 1px solid #d9d9d9;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #32363a;
+      border-radius: 4px 4px 0 0;
+    }
+    .panel-body { padding: 20px 16px 24px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #32363a;
+      margin-bottom: 6px;
+    }
+    .form-label .required { color: #bb0000; margin-left: 2px; }
+    .drop-zone {
+      border: 1px dashed #89919a;
+      background: #fafafa;
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      color: #6a6d70;
+      font-size: 0.85rem;
+      border-radius: 4px;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #0a6ed1; background: #e8f1fb; }
+    .drop-zone.has-file { border-color: #107e3e; background: #f1fdf6; color: #107e3e; border-style: solid; }
+    .drop-zone input[type="file"] { display: none; }
+    .drop-icon { font-size: 2rem; margin-bottom: 8px; }
+    .drop-hint { font-size: 0.75rem; color: #89919a; margin-top: 4px; }
+    input[type="number"] {
+      width: 100%;
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid #89919a;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      color: #32363a;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: white;
+    }
+    input[type="number"]:focus {
+      border-color: #0a6ed1;
+      box-shadow: 0 0 0 2px rgba(10,110,209,0.15);
+    }
+    .btn-primary {
+      height: 36px;
+      padding: 0 20px;
+      background: #0a6ed1;
+      color: white;
+      border: 1px solid #0a6ed1;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover:not(:disabled) { background: #085caf; border-color: #085caf; }
+    .btn-primary:disabled { background: #89919a; border-color: #89919a; cursor: not-allowed; }
+    .form-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .message-bar {
+      display: none;
+      margin-top: 16px;
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      border-left: 4px solid;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .message-bar.error   { display: flex; background: #ffeaea; border-color: #bb0000; color: #bb0000; }
+    .message-bar.success { display: flex; background: #f1fdf6; border-color: #107e3e; color: #107e3e; }
+    .message-bar.warning { display: flex; background: #fff8e6; border-color: #e9730c; color: #e9730c; }
+    .shell-footer {
+      background: #f7f7f7;
+      border-top: 1px solid #d9d9d9;
+      padding: 8px 32px;
+      font-size: 0.75rem;
+      color: #89919a;
+    }
+    #lib-warning {
+      display: none;
+      background: #fff8e6;
+      border: 1px solid #e9730c;
+      border-left: 4px solid #e9730c;
+      color: #e9730c;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="shell-header">
+    <span class="shell-logo">SAP</span>
+    <span class="shell-title">FTE Invoice Split</span>
+    <span class="shell-version" id="versionLabel">v1.0.0</span>
+  </div>
+
+  <!-- Bannière mise à jour (masquée par défaut) -->
+  <div id="update-banner">
+    <span class="upd-icon">🆕</span>
+    <span class="upd-text">
+      <strong id="upd-title">Nouvelle version disponible</strong>
+      <span class="upd-changelog" id="upd-changelog"></span>
+    </span>
+    <a id="upd-download" class="btn-update" href="#" download="FTE_Invoice_Split.html">
+      ⬇ Télécharger
+    </a>
+    <button class="btn-dismiss" id="upd-dismiss" title="Ignorer cette version">✕</button>
+  </div>
+
+  <div class="page">
+    <div class="page-title">Invoice Posting by Cost Center</div>
+    <div class="page-subtitle">Déposez le fichier headcount et saisissez le montant total de la facture pour générer la répartition.</div>
+
+    <div id="lib-warning">
+      ⚠️ La librairie SheetJS n'a pas pu être chargée (CDN peut-être bloqué par le réseau SAP).<br/>
+      Solution : téléchargez <a href="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" style="color:inherit;font-weight:600">xlsx.full.min.js</a>
+      et placez-le dans le même dossier que ce fichier HTML, puis remplacez la balise script en haut du fichier par
+      <code style="background:rgba(0,0,0,0.07);padding:1px 4px;border-radius:3px">&lt;script src="xlsx.full.min.js"&gt;&lt;/script&gt;</code>.
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Paramètres</div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label class="form-label">Fichier headcount<span class="required">*</span></label>
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".xlsx,.xls" />
+            <div class="drop-icon">📄</div>
+            <div id="dropText">Glissez le fichier Excel ici ou <u>parcourir</u></div>
+            <div class="drop-hint">Colonnes requises : <strong>Cost Ctr</strong> et <strong>UtilLvl</strong></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="amount">Montant total de la facture (EUR)<span class="required">*</span></label>
+          <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" />
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" id="runBtn" disabled>Générer</button>
+        </div>
+
+        <div class="message-bar" id="message"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="shell-footer">SAP SE — Outil interne — FTE Invoice Split — 100% local, aucune donnée transmise</div>
+
+<script>
+  // ── Version courante ──────────────────────────────────────────────────────
+  const CURRENT_VERSION  = '1.0.0';
+  const VERSION_JSON_URL = 'https://raw.githubusercontent.com/Enzo0673/filelabs/main/tools/fte-version.json';
+  const DISMISS_KEY      = 'fte-dismissed-version';
+
+  document.getElementById('versionLabel').textContent = 'v' + CURRENT_VERSION;
+
+  // ── Vérification de mise à jour (silencieuse si pas de réseau) ────────────
+  function isNewer(remote, local) {
+    const r = remote.split('.').map(Number);
+    const l = local.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      if ((r[i] || 0) > (l[i] || 0)) return true;
+      if ((r[i] || 0) < (l[i] || 0)) return false;
+    }
+    return false;
+  }
+
+  async function checkForUpdates() {
+    try {
+      const resp = await fetch(VERSION_JSON_URL, { cache: 'no-cache', signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (!data.version || !isNewer(data.version, CURRENT_VERSION)) return;
+      if (localStorage.getItem(DISMISS_KEY) === data.version) return;
+
+      document.getElementById('upd-title').textContent =
+        `Nouvelle version disponible : v${data.version} (vous avez v${CURRENT_VERSION})`;
+      document.getElementById('upd-changelog').textContent = data.changelog || '';
+      document.getElementById('upd-download').href = data.download_url;
+      document.getElementById('update-banner').style.display = 'flex';
+
+      document.getElementById('upd-dismiss').addEventListener('click', () => {
+        localStorage.setItem(DISMISS_KEY, data.version);
+        document.getElementById('update-banner').style.display = 'none';
+      });
+    } catch (e) {
+      // Pas de réseau ou CDN bloqué — on ignore silencieusement
+    }
+  }
+
+  checkForUpdates();
+
+  // ── Vérification chargement SheetJS ──────────────────────────────────────
+  if (typeof XLSX === 'undefined') {
+    document.getElementById('lib-warning').style.display = 'block';
+  }
+
+  // ── Éléments DOM ─────────────────────────────────────────────────────────
+  const dropZone  = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const dropText  = document.getElementById('dropText');
+  const runBtn    = document.getElementById('runBtn');
+  const amountIn  = document.getElementById('amount');
+  const message   = document.getElementById('message');
+  let selectedFile = null;
+
+  // ── Drag & drop ───────────────────────────────────────────────────────────
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+  function setFile(file) {
+    selectedFile = file;
+    dropZone.classList.add('has-file');
+    dropText.textContent = '✓ ' + file.name;
+    checkReady();
+  }
+  amountIn.addEventListener('input', checkReady);
+  function checkReady() {
+    runBtn.disabled = !(selectedFile && amountIn.value && parseFloat(amountIn.value) > 0);
+  }
+
+  function showMessage(text, type) {
+    message.textContent = text;
+    message.className = 'message-bar ' + type;
+  }
+
+  // ── Extraction de date depuis le nom de fichier ────────────────────────────
+  function extractDateFromFilename(filename) {
+    const stem = filename.replace(/\.[^.]+$/, '');
+    const patterns = [
+      { re: /(\d{4})[-\/](\d{2})[-\/](\d{2})/, fmt: m => m[3] + m[2] + m[1] },
+      { re: /(\d{1,2})[.\-\/](\d{2})[.\-\/](\d{4})/, fmt: m => m[1].padStart(2,'0') + m[2] + m[3] },
+      { re: /(\d{1,2})[.\-\/](\d{2})[.\-\/](\d{2})(?!\d)/, fmt: m => m[1].padStart(2,'0') + m[2] + '20' + m[3] },
+      { re: /(\d{2})(\d{2})[.](\d{4})/, fmt: m => m[1] + m[2] + m[3] },
+      { re: /(?<!\d)(\d{2})(\d{2})(\d{4})(?!\d)/, fmt: m => m[1] + m[2] + m[3] },
+    ];
+    for (const { re, fmt } of patterns) {
+      const m = stem.match(re);
+      if (m) return fmt(m);
+    }
+    return null;
+  }
+
+  // ── Logique métier ────────────────────────────────────────────────────────
+  function processFile(file, amount) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Erreur de lecture du fichier.'));
+      reader.onload = e => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const wb   = XLSX.read(data, { type: 'array' });
+          const ws   = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+          if (!rows.length) throw new Error('Le fichier Excel est vide.');
+
+          const cols = Object.keys(rows[0]);
+          const cleanCols = cols.map(c => c.trim());
+          if (!cleanCols.includes('Cost Ctr') || !cleanCols.includes('UtilLvl')) {
+            throw new Error('Colonnes manquantes dans le fichier : "Cost Ctr" et "UtilLvl" sont requises.');
+          }
+
+          const ccKey = cols[cleanCols.indexOf('Cost Ctr')];
+          const ulKey = cols[cleanCols.indexOf('UtilLvl')];
+
+          const grouped = {};
+          for (const row of rows) {
+            const cc  = String(row[ccKey]).trim();
+            const fte = (parseFloat(row[ulKey]) || 0) / 100;
+            grouped[cc] = (grouped[cc] || 0) + fte;
+          }
+          const costCenters = Object.keys(grouped).sort();
+
+          const outWb = XLSX.utils.book_new();
+
+          const ws1 = XLSX.utils.json_to_sheet(rows);
+          XLSX.utils.book_append_sheet(outWb, ws1, 'Employees');
+
+          const ws2 = {};
+          const grandTotalRow = costCenters.length + 2;
+
+          ws2['A1'] = { v: 'Cost Ctr',       t: 's' };
+          ws2['B1'] = { v: 'Sum of FTE',      t: 's' };
+          ws2['C1'] = { v: 'Ratio of FTE',    t: 's' };
+          ws2['D1'] = { v: 'Invoice posting', t: 's' };
+
+          costCenters.forEach((cc, idx) => {
+            const r = idx + 2;
+            ws2[`A${r}`] = { v: cc,          t: 's' };
+            ws2[`B${r}`] = { v: grouped[cc], t: 'n' };
+            ws2[`C${r}`] = { f: `B${r}/B$${grandTotalRow}` };
+            ws2[`D${r}`] = { f: `C${r}*${amount}` };
+          });
+
+          const r = grandTotalRow;
+          ws2[`A${r}`] = { v: 'Grand Total',           t: 's' };
+          ws2[`B${r}`] = { f: `SUM(B2:B${r - 1})` };
+          ws2[`C${r}`] = { f: `SUM(C2:C${r - 1})` };
+          ws2[`D${r}`] = { f: `SUM(D2:D${r - 1})` };
+
+          ws2['!ref']  = `A1:D${r}`;
+          ws2['!cols'] = [{ wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 18 }];
+          XLSX.utils.book_append_sheet(outWb, ws2, 'FTE Calculation');
+
+          resolve(outWb);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ── Bouton Générer ────────────────────────────────────────────────────────
+  runBtn.addEventListener('click', async () => {
+    if (typeof XLSX === 'undefined') {
+      showMessage('La librairie SheetJS n\'est pas chargée. Voir l\'avertissement en haut de page.', 'error');
+      return;
+    }
+
+    message.className = 'message-bar';
+    runBtn.disabled = true;
+    runBtn.textContent = 'Traitement…';
+
+    const amount = parseFloat(amountIn.value);
+
+    try {
+      const outWb = await processFile(selectedFile, amount);
+
+      const datePart   = extractDateFromFilename(selectedFile.name);
+      const outputName = datePart ? `HC SAP LABS ${datePart}.xlsx` : 'HC SAP LABS.xlsx';
+
+      const wbout = XLSX.write(outWb, { bookType: 'xlsx', type: 'array' });
+      const blob  = new Blob([wbout], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = outputName;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showMessage('✓ Fichier généré et téléchargé : ' + outputName, 'success');
+
+    } catch (err) {
+      showMessage('Erreur : ' + err.message, 'error');
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = 'Générer';
+      checkReady();
+    }
+  });
+</script>
+
+</body>
+</html>
