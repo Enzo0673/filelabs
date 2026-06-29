@@ -3,17 +3,50 @@
    Dark editorial, Syne + DM Sans, teal accent on near-black
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ---- Palette par défaut : Cream & Ink (cohérent avec la homepage) ---- */
 :root {
+  --primary:       #0D9488;
+  --primary-dim:   #0f766e;
+  --primary-glow:  rgba(13,148,136,.14);
+  --primary-muted: rgba(13,148,136,.07);
+  --cta:           #1A56F0;
+  --cta-dark:      #1444C4;
+  --bg:            #F7F4EE;
+  --bg-2:          #EDE9DF;
+  --surface:       #FFFFFF;
+  --surface-2:     #FAF8F4;
+  --surface-3:     #F0EDE6;
+  --border:        rgba(13,148,136,.15);
+  --border-subtle: rgba(15,15,15,.08);
+  --text:          #0F0F0F;
+  --text-muted:    #6B6460;
+  --text-dim:      #A39E99;
+  --success:       #059669;
+  --error:         #E63946;
+  --warning:       #D97706;
+  --radius:        14px;
+  --radius-sm:     8px;
+  --shadow:        0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:     0 4px 24px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.05);
+  --shadow-glow:   0 0 24px rgba(13,148,136,.1);
+  --transition:    150ms ease;
+  --font-display:  'Playfair Display', Georgia, serif;
+  --font-body:     'DM Sans', system-ui, sans-serif;
+  /* Aliases pour compatibilité downloaders */
+  --teal:          #0D9488;
+  --bg-card:       #FFFFFF;
+}
+
+/* ---- Mode sombre ---- */
+[data-theme="dark"] {
   --primary:       #2DD4BF;
   --primary-dim:   #14B8A6;
   --primary-glow:  rgba(45,212,191,.15);
   --primary-muted: rgba(45,212,191,.08);
-  --cta:           #F97316;
-  --cta-dark:      #ea6c0a;
   --bg:            #0a0f0f;
   --bg-2:          #0f1616;
   --surface:       #131e1e;
@@ -24,38 +57,11 @@
   --text:          #e8f4f3;
   --text-muted:    #7a9e9b;
   --text-dim:      #4d6866;
-  --success:       #10b981;
-  --error:         #f87171;
-  --warning:       #fbbf24;
-  --radius:        14px;
-  --radius-sm:     8px;
   --shadow:        0 1px 3px rgba(0,0,0,.4);
   --shadow-lg:     0 8px 32px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.3);
   --shadow-glow:   0 0 24px rgba(45,212,191,.1);
-  --transition:    150ms ease;
-  --font-display:  'Syne', system-ui, sans-serif;
-  --font-body:     'DM Sans', system-ui, sans-serif;
-}
-
-/* Light mode override */
-[data-theme="light"] {
-  --primary:       #0D9488;
-  --primary-dim:   #0f766e;
-  --primary-glow:  rgba(13,148,136,.12);
-  --primary-muted: rgba(13,148,136,.06);
-  --bg:            #f0fdfb;
-  --bg-2:          #e6f7f5;
-  --surface:       #ffffff;
-  --surface-2:     #f4fefe;
-  --surface-3:     #e8f8f7;
-  --border:        rgba(13,148,136,.15);
-  --border-subtle: rgba(0,0,0,.07);
-  --text:          #0d2e2b;
-  --text-muted:    #4a7a77;
-  --text-dim:      #8ab8b5;
-  --shadow:        0 1px 3px rgba(0,0,0,.08);
-  --shadow-lg:     0 4px 24px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.05);
-  --shadow-glow:   0 0 24px rgba(13,148,136,.08);
+  --teal:          #2DD4BF;
+  --bg-card:       #131e1e;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -80,7 +86,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 88px 16px 32px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -91,7 +97,7 @@ body {
 
 .app {
   width: 100%;
-  max-width: 560px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -99,16 +105,32 @@ body {
 
 /* ---- Header (tool pages) ---- */
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 60px;
+  background: rgba(247,244,238,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+[data-theme="dark"] .header {
+  background: rgba(10,15,15,0.92);
+  border-bottom-color: rgba(255,255,255,.07);
 }
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
 .logo-text {
   font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--text);
 }
@@ -135,10 +157,12 @@ body {
 .tool-hero-icon { font-size: 2.2rem; }
 .tool-hero-title {
   font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 800;
   letter-spacing: -0.5px;
   margin-bottom: 2px;
+  color: var(--text);
+  line-height: 1.15;
 }
 .tool-hero-sub { font-size: .83rem; color: var(--text-muted); }
 
@@ -482,24 +506,27 @@ body {
 
 /* ---- Dark mode toggle button ---- */
 .btn-theme {
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: 1.5px solid var(--border-subtle);
   border-radius: 8px;
   padding: 6px 10px;
   font-size: 1rem;
   cursor: pointer;
   color: var(--text-muted);
   line-height: 1;
-  transition: border-color .15s, color .15s, background .15s;
+  transition: border-color .15s, color .15s;
 }
-.btn-theme:hover { border-color: var(--border); color: var(--primary); background: var(--surface-3); }
+.btn-theme:hover { border-color: var(--text-dim); color: var(--primary); }
 
 /* ---- Footer ---- */
 .footer {
   text-align: center;
   font-size: .73rem;
   color: var(--text-dim);
-  padding-bottom: 8px;
+  padding-bottom: 16px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+  margin-top: 4px;
 }
 
 /* ---- Form elements (generic) ---- */
@@ -577,6 +604,104 @@ body {
   font-family: var(--font-body);
 }
 .btn-add-more:hover { border-color: var(--primary); color: var(--primary); }
+
+/* =========================================================
+   DOWNLOADER PAGES — classes complémentaires
+   ========================================================= */
+
+.tool-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0 12px;
+}
+.tool-header-icon { font-size: 2rem; flex-shrink: 0; }
+.tool-header-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.tool-header-desc { font-size: .83rem; color: var(--text-muted); line-height: 1.4; }
+.back-btn {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border-radius: 8px;
+  transition: color .15s, background .15s;
+  flex-shrink: 0;
+}
+.back-btn:hover { color: var(--primary); background: var(--surface-2); }
+
+.tool-main { display: flex; flex-direction: column; gap: 16px; }
+
+.tool-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--primary);
+  color: #000;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 24px;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  font-family: var(--font-body);
+  text-decoration: none;
+}
+.btn-primary:hover { background: #1dbfae; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  padding: 11px 24px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-body);
+  text-decoration: none;
+}
+.btn-secondary:hover { border-color: var(--border); color: var(--text); }
+
+.error-msg {
+  color: var(--error);
+  font-size: .85rem;
+  padding: 10px 14px;
+  background: rgba(230,57,70,.07);
+  border-radius: 8px;
+  border: 1px solid rgba(230,57,70,.15);
+}
+
+.success-msg {
+  color: var(--success);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 0;
+}
 
 /* =========================================================
    HOME PAGE — "Cream & Ink"

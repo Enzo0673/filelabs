@@ -4,7 +4,11 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FileLabs — Video Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/static/css/style.css"/>
+  <script src="/static/js/theme.js"></script>
   <script src="/js/env.js"></script>
   <style>
     .url-input-wrap {
@@ -173,23 +177,18 @@
   </style>
 </head>
 <body>
-<div id="app">
-  <header class="tool-header">
-    <a href="/" class="back-btn" aria-label="Retour">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-    </a>
-    <div class="tool-header-icon">📥</div>
-    <div>
-      <h1 class="tool-header-title">Video Downloader</h1>
-      <p class="tool-header-desc">Téléchargez une vidéo en MP4 ou MP3 depuis YouTube, TikTok, Instagram et plus</p>
-    </div>
+<div class="app">
+  <header class="header">
+    <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0D9488"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">FileLabs</span></a></div>
+    <a href="/" class="btn-back">← Tous les outils</a>
+    <button class="btn-theme" id="btnTheme" title="Thème sombre/clair" onclick="window.__theme.toggle(); updateThemeIcon()"><svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg><svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
   </header>
-
-  <main class="tool-main">
+  <div class="tool-hero"><span class="tool-hero-icon">📥</span><div><h1 class="tool-hero-title">Video Downloader</h1><p class="tool-hero-sub">Téléchargez une vidéo en MP4 ou MP3 depuis YouTube, TikTok, Instagram et plus</p></div></div>
+  <main class="main">
 
     <!-- Étape 1 : saisie URL -->
     <section class="tool-section" id="step-url">
-      <div class="section-title">URL de la vidéo</div>
+      <div class="section-label">URL de la vidéo</div>
       <div class="url-input-wrap">
         <input
           type="url"
@@ -225,7 +224,7 @@
 
       <!-- Contenu onglet MP4 -->
       <div id="panelMp4">
-        <div class="section-title" style="font-size:13px;margin-bottom:10px">Choisissez la résolution</div>
+        <div class="section-label" style="font-size:13px;margin-bottom:10px">Choisissez la résolution</div>
         <div class="format-grid" id="formatGrid"></div>
       </div>
 
@@ -267,6 +266,7 @@
     </section>
 
   </main>
+  <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
 </div>
 
 <script>

@@ -3,13 +3,22 @@
    Dark mode : appliqué avant le premier rendu pour éviter le flash
    ========================================================= */
 (function () {
-  const STORAGE_KEY = 'filelabs-theme';
+  const STORAGE_KEY  = 'filelabs-theme';
+  const VERSION_KEY  = 'filelabs-theme-v';
+  const CURRENT_VER  = '2'; // incrémenter si le défaut change à nouveau
+
+  // Migration : si l'utilisateur n'a pas encore vu la v2, on efface
+  // l'ancien choix pour repartir sur le nouveau défaut (light/cream).
+  if (localStorage.getItem(VERSION_KEY) !== CURRENT_VER) {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem(VERSION_KEY, CURRENT_VER);
+  }
 
   function getPreferred() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'dark' || saved === 'light') return saved;
-    // Default: dark (design is dark-first; respect system only if explicitly light)
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    // Default: light (cream palette); respect system dark mode if explicitly set
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
   function apply(theme) {
