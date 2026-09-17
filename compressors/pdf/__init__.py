@@ -4,6 +4,7 @@ from compressors.pdf.tools import (
     merge_pdfs, split_pdf, pdf_to_jpg, jpg_to_pdf,
     rotate_pdf, rotate_pdf_map, watermark_pdf, add_page_numbers,
     delete_pages, unlock_pdf, protect_pdf, repair_pdf, extract_pdf_text,
+    extract_pdf_images, add_pdf_signature,
 )
 
 __all__ = [
@@ -11,4 +12,5 @@ __all__ = [
     "merge_pdfs", "split_pdf", "pdf_to_jpg", "jpg_to_pdf",
     "rotate_pdf", "rotate_pdf_map", "watermark_pdf", "add_page_numbers",
     "delete_pages", "unlock_pdf", "protect_pdf", "repair_pdf", "extract_pdf_text",
+    "extract_pdf_images", "add_pdf_signature",
 ]

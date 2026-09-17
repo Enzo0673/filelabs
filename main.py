@@ -43,6 +43,7 @@ from compressors.pdf import (
     merge_pdfs, split_pdf, pdf_to_jpg, jpg_to_pdf,
     rotate_pdf, rotate_pdf_map, watermark_pdf, add_page_numbers,
     delete_pages, unlock_pdf, protect_pdf, repair_pdf, extract_pdf_text,
+    extract_pdf_images, add_pdf_signature,
 )
 from compressors.media import (
     compress_video, trim_video, resize_video, merge_videos, add_text_video,
@@ -993,6 +994,62 @@ async def pdf_extract_text(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Erreur lors de l'extraction du texte")
     finally:
         input_path.unlink(missing_ok=True)
+
+
+# ---- Extraire images PDF ----
+@app.post("/pdf/extract-images")
+async def pdf_extract_images(
+    file: UploadFile = File(...),
+    mode: str = Form("embedded"),
+):
+    if mode not in ("embedded", "pages"):
+        raise HTTPException(status_code=400, detail="mode doit être 'embedded' ou 'pages'")
+    uid = uuid.uuid4().hex
+    input_path = UPLOAD_DIR / f"{uid}_input.pdf"
+    output_path = OUTPUT_DIR / f"{uid}_output.zip"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["pdf"])
+        extract_pdf_images(input_path, output_path, mode=mode)
+        return {"success": True, "download_id": uid, "output_filename": f"images_{mode}.zip"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ImportError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Signature PDF ----
+@app.post("/pdf/add-signature")
+async def pdf_add_signature(
+    file: UploadFile = File(...),
+    signature: UploadFile = File(...),
+    page: int = Form(1),
+    x: float = Form(50.0),
+    y: float = Form(50.0),
+    width: float = Form(150.0),
+):
+    uid = uuid.uuid4().hex
+    input_path = UPLOAD_DIR / f"{uid}_input.pdf"
+    sig_path = UPLOAD_DIR / f"{uid}_sig.png"
+    output_path = OUTPUT_DIR / f"{uid}_output.pdf"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["pdf"])
+        await _save_upload(signature, sig_path, MAX_SIZE["image"])
+        add_pdf_signature(input_path, sig_path, output_path, page=page, x=x, y=y, width=width)
+        stem = Path(file.filename or "doc").stem
+        return {"success": True, "download_id": uid, "output_filename": f"{stem}_signed.pdf"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement")
+    finally:
+        input_path.unlink(missing_ok=True)
+        sig_path.unlink(missing_ok=True)
 
 
 # ---- Word / Excel / PowerPoint → PDF ----

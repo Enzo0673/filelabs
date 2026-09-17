@@ -384,3 +384,48 @@ def test_compress_video_invalid_height_returns_400(app_client, sample_jpg_bytes)
         data={"level": "standard", "vid_max_height": "1440"},  # non dans _VALID_HEIGHTS
     )
     assert resp.status_code == 400
+
+
+# ─── /pdf/extract-images ──────────────────────────────────────────────────────
+
+def test_pdf_extract_images_embedded(app_client, sample_pdf_bytes):
+    r = app_client.post(
+        "/pdf/extract-images",
+        files={"file": ("test.pdf", sample_pdf_bytes, "application/pdf")},
+        data={"mode": "embedded"},
+    )
+    assert r.status_code == 200
+    assert r.json()["success"] is True
+
+def test_pdf_extract_images_invalid_mode(app_client, sample_pdf_bytes):
+    r = app_client.post(
+        "/pdf/extract-images",
+        files={"file": ("test.pdf", sample_pdf_bytes, "application/pdf")},
+        data={"mode": "invalid"},
+    )
+    assert r.status_code in (400, 422, 500)
+
+# ─── /pdf/add-signature ───────────────────────────────────────────────────────
+
+def test_pdf_add_signature(app_client, sample_pdf_bytes, sample_png_bytes):
+    r = app_client.post(
+        "/pdf/add-signature",
+        files={
+            "file": ("test.pdf", sample_pdf_bytes, "application/pdf"),
+            "signature": ("sig.png", sample_png_bytes, "image/png"),
+        },
+        data={"page": "1", "x": "50", "y": "50", "width": "100"},
+    )
+    assert r.status_code == 200
+    assert r.json()["success"] is True
+
+def test_pdf_add_signature_invalid_page(app_client, sample_pdf_bytes, sample_png_bytes):
+    r = app_client.post(
+        "/pdf/add-signature",
+        files={
+            "file": ("test.pdf", sample_pdf_bytes, "application/pdf"),
+            "signature": ("sig.png", sample_png_bytes, "image/png"),
+        },
+        data={"page": "99", "x": "50", "y": "50", "width": "100"},
+    )
+    assert r.status_code in (400, 500)
