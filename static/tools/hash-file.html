@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hasher un fichier — FileLabs</title>
+  <meta name="description" content="Calculer MD5, SHA-256 ou SHA-512 d'un fichier — outil gratuit, sans inscription, 100% local." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://filelabs.onrender.com/tool/hash-file" />
+  <meta property="og:title" content="Hasher un fichier — FileLabs" />
+  <meta property="og:description" content="Calculer MD5, SHA-256 ou SHA-512 d'un fichier gratuitement, sans compte." />
+  <meta property="og:image" content="https://filelabs.onrender.com/static/icons/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <script src="/static/js/theme.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
+  <script src="/static/js/utils.js"></script>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
+  <style>
+    .hash-row { display:flex; flex-direction:column; gap:4px; padding:12px; background:var(--bg); border-radius:8px; border:1px solid var(--border); }
+    .hash-label { font-size:.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; }
+    .hash-value-wrap { display:flex; align-items:center; gap:8px; }
+    .hash-value { font-family:monospace; font-size:.82rem; word-break:break-all; flex:1; color:var(--text); }
+    .btn-copy { padding:4px 10px; font-size:.78rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); cursor:pointer; white-space:nowrap; transition:all .15s; }
+    .btn-copy:hover { border-color:var(--primary); color:var(--primary); }
+    .check-row { display:flex; align-items:center; gap:8px; padding:8px 0; cursor:pointer; }
+    .check-row input { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
+    .check-row label { font-weight:600; font-size:.9rem; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="app" style="max-width:640px">
+    <header class="header">
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0D9488"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">FileLabs</span></a></div>
+      <a href="/" class="btn-back">← Tous les outils</a>
+      <button class="btn-theme" id="btnTheme" title="Thème sombre/clair" onclick="window.__theme.toggle(); updateThemeIcon()"><svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg><svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+    </header>
+
+    <div class="tool-hero"><span class="tool-hero-icon">#</span><div><h1 class="tool-hero-title">Hasher un fichier</h1><p class="tool-hero-sub">Calculer MD5, SHA-256 ou SHA-512</p></div></div>
+
+    <main class="main">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <p class="drop-title">Glissez n'importe quel fichier ici</p><p class="drop-sub">ou</p>
+        <label class="btn-browse" for="fileInput">Parcourir</label>
+        <input type="file" id="fileInput" hidden accept="*/*" />
+      </div>
+
+      <div id="configPanel" hidden style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="fileName" style="font-weight:600;font-size:.9rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="fileSize" style="font-size:.82rem;color:var(--text-muted);white-space:nowrap"></div>
+        </div>
+        <div>
+          <p style="font-weight:600;font-size:.9rem;margin-bottom:8px">Algorithmes</p>
+          <label class="check-row"><input type="checkbox" id="chkMd5" checked /><span>MD5</span></label>
+          <label class="check-row"><input type="checkbox" id="chkSha256" checked /><span>SHA-256</span></label>
+          <label class="check-row"><input type="checkbox" id="chkSha512" /><span>SHA-512</span></label>
+        </div>
+        <button class="btn-compress" id="btnAction">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3V13M10 13L6 9M10 13L14 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="15" width="14" height="2" rx="1" fill="currentColor"/></svg>
+          Calculer les hashs
+        </button>
+      </div>
+
+      <div class="progress-panel" id="progressPanel" hidden>
+        <div class="progress-spinner"></div>
+        <p class="progress-label">Calcul en cours…</p>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+
+      <div id="hashResultPanel" hidden style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px;display:flex;flex-direction:column;gap:12px">
+        <div class="result-badge" style="background:linear-gradient(135deg,#0D9488,#0f766e);border-radius:8px;padding:8px 16px;color:#fff;font-weight:700;text-align:center">✓ Hashes calculés</div>
+        <div id="hashRows"></div>
+        <button class="btn-reset" id="btnReset">Nouveau fichier</button>
+      </div>
+
+      <div class="error-panel" id="errorPanel" hidden>
+        <div class="error-icon">!</div>
+        <p class="error-msg" id="errorMsg"></p>
+        <button class="btn-reset" id="btnErrorReset">Réessayer</button>
+      </div>
+    </main>
+
+    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+  </div>
+
+  <script>
+    let currentFile = null;
+
+    const dropZone        = document.getElementById('dropZone');
+    const fileInput       = document.getElementById('fileInput');
+    const configPanel     = document.getElementById('configPanel');
+    const progressPanel   = document.getElementById('progressPanel');
+    const hashResultPanel = document.getElementById('hashResultPanel');
+    const errorPanel      = document.getElementById('errorPanel');
+    const ALL = [dropZone, configPanel, progressPanel, hashResultPanel, errorPanel];
+
+    function showPanel(p) { ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
+    function formatBytes(b) { return b < 1024*1024 ? (b/1024).toFixed(1)+' Ko' : (b/(1024*1024)).toFixed(2)+' Mo'; }
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+    dropZone.addEventListener('click', e => { if (!e.target.closest('label')) fileInput.click(); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+
+    function loadFile(file) {
+      currentFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatBytes(file.size);
+      showPanel(configPanel);
+    }
+
+    document.getElementById('btnAction').addEventListener('click', async () => {
+      const algos = [];
+      if (document.getElementById('chkMd5').checked)    algos.push('md5');
+      if (document.getElementById('chkSha256').checked) algos.push('sha256');
+      if (document.getElementById('chkSha512').checked) algos.push('sha512');
+      if (!algos.length) { alert('Sélectionnez au moins un algorithme.'); return; }
+
+      showPanel(progressPanel);
+      const fd = new FormData();
+      fd.append('file', currentFile);
+      fd.append('algorithms', algos.join(','));
+      try {
+        const res  = await fetch('/utils/hash', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+
+        const labels = { md5: 'MD5', sha256: 'SHA-256', sha512: 'SHA-512' };
+        const container = document.getElementById('hashRows');
+        container.innerHTML = '';
+        for (const [key, val] of Object.entries(data)) {
+          if (!val) continue;
+          const row = document.createElement('div');
+          row.className = 'hash-row';
+          row.innerHTML = `<div class="hash-label">${labels[key] || key}</div>
+            <div class="hash-value-wrap">
+              <span class="hash-value">${val}</span>
+              <button class="btn-copy" data-val="${val}">Copier</button>
+            </div>`;
+          container.appendChild(row);
+        }
+        container.querySelectorAll('.btn-copy').forEach(btn => {
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.dataset.val).then(() => {
+              btn.textContent = 'Copié !';
+              setTimeout(() => btn.textContent = 'Copier', 1500);
+            });
+          });
+        });
+        showPanel(hashResultPanel);
+      } catch(err) {
+        document.getElementById('errorMsg').textContent = err.message;
+        showPanel(errorPanel);
+      }
+    });
+
+    function reset() { currentFile = null; showPanel(dropZone); }
+    document.getElementById('btnReset').addEventListener('click', reset);
+    document.getElementById('btnErrorReset').addEventListener('click', reset);
+
+    showPanel(dropZone);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
+  </script>
+  <script src="/static/js/banner.js"></script>
+</body>
+</html>

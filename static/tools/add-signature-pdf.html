@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signer un PDF — FileLabs</title>
+  <meta name="description" content="Ajouter une signature PNG sur une page du PDF — outil gratuit, sans inscription, 100% local." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://filelabs.onrender.com/tool/add-signature-pdf" />
+  <meta property="og:title" content="Signer un PDF — FileLabs" />
+  <meta property="og:description" content="Ajouter une signature PNG sur un PDF gratuitement, sans compte." />
+  <meta property="og:image" content="https://filelabs.onrender.com/static/icons/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <script src="/static/js/theme.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32.png" />
+  <script src="/static/js/utils.js"></script>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="d13c5acb-0540-425c-bc8f-6eacb07fc47a"></script>
+  <style>
+    .drop-zone-sm { border:2px dashed var(--border); border-radius:12px; padding:20px 16px; text-align:center; cursor:pointer; transition:all .2s; background:var(--bg); }
+    .drop-zone-sm:hover, .drop-zone-sm.drag-over { border-color:var(--primary); background:var(--primary-light,#ccfbf1); }
+    .drop-zone-sm.loaded { border-color:var(--primary); border-style:solid; }
+    .drop-zone-sm .dz-label { font-size:.88rem; font-weight:600; color:var(--text-muted); margin-top:6px; }
+    .drop-zone-sm .dz-name { font-size:.82rem; color:var(--primary); font-weight:700; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .num-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .num-field label { font-size:.82rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px; }
+    .num-field input { width:100%; padding:8px 10px; border:2px solid var(--border); border-radius:8px; font-size:.9rem; background:var(--bg); color:var(--text); box-sizing:border-box; transition:border-color .15s; }
+    .num-field input:focus { outline:none; border-color:var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="app" style="max-width:640px">
+    <header class="header">
+      <div class="logo"><a href="/" class="logo-link"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#0D9488"/><path d="M8 16L14 10L20 16L26 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22L14 16L20 22L26 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg><span class="logo-text">FileLabs</span></a></div>
+      <a href="/" class="btn-back">← Tous les outils</a>
+      <button class="btn-theme" id="btnTheme" title="Thème sombre/clair" onclick="window.__theme.toggle(); updateThemeIcon()"><svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg><svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+    </header>
+
+    <div class="tool-hero"><span class="tool-hero-icon">✍️</span><div><h1 class="tool-hero-title">Signer un PDF</h1><p class="tool-hero-sub">Ajouter une signature PNG sur une page du PDF</p></div></div>
+
+    <main class="main">
+      <div id="formPanel" style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:24px;display:flex;flex-direction:column;gap:16px">
+        <!-- Drop PDF -->
+        <div>
+          <p style="font-weight:600;font-size:.9rem;margin-bottom:8px">1. Fichier PDF</p>
+          <div class="drop-zone-sm" id="dropPdf">
+            <svg width="28" height="28" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/></svg>
+            <div class="dz-label">Glissez votre PDF ici ou <label for="inputPdf" style="color:var(--primary);cursor:pointer;text-decoration:underline">parcourir</label></div>
+            <div class="dz-name" id="namePdf"></div>
+            <input type="file" id="inputPdf" hidden accept=".pdf" />
+          </div>
+        </div>
+        <!-- Drop Signature -->
+        <div>
+          <p style="font-weight:600;font-size:.9rem;margin-bottom:8px">2. Image de signature (PNG)</p>
+          <div class="drop-zone-sm" id="dropSig">
+            <svg width="28" height="28" viewBox="0 0 48 48" fill="none"><path d="M24 8V32M24 8L16 16M24 8L32 16" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 36H40" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/></svg>
+            <div class="dz-label">Glissez votre PNG ici ou <label for="inputSig" style="color:var(--primary);cursor:pointer;text-decoration:underline">parcourir</label></div>
+            <div class="dz-name" id="nameSig"></div>
+            <input type="file" id="inputSig" hidden accept="image/png" />
+          </div>
+        </div>
+        <!-- Params -->
+        <div>
+          <p style="font-weight:600;font-size:.9rem;margin-bottom:10px">3. Position &amp; taille</p>
+          <div class="num-grid">
+            <div class="num-field"><label for="inPage">Page</label><input type="number" id="inPage" value="1" min="1" /></div>
+            <div class="num-field"><label for="inWidth">Largeur (px)</label><input type="number" id="inWidth" value="150" min="10" /></div>
+            <div class="num-field"><label for="inX">Position X</label><input type="number" id="inX" value="50" min="0" /></div>
+            <div class="num-field"><label for="inY">Position Y</label><input type="number" id="inY" value="700" min="0" /></div>
+          </div>
+        </div>
+        <button class="btn-compress" id="btnAction">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3V13M10 13L6 9M10 13L14 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="15" width="14" height="2" rx="1" fill="currentColor"/></svg>
+          Ajouter la signature
+        </button>
+      </div>
+
+      <div class="progress-panel" id="progressPanel" hidden>
+        <div class="progress-spinner"></div>
+        <p class="progress-label">Signature en cours…</p>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+
+      <div class="result-panel" id="resultPanel" hidden>
+        <div class="result-badge" style="background:linear-gradient(135deg,#0D9488,#0f766e)">✓ Signature ajoutée</div>
+        <div class="result-actions">
+          <a class="btn-download" id="btnDownload" href="#"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3V11M9 11L5 7M9 11L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Télécharger</a>
+          <button class="btn-reset" id="btnReset">Nouveau fichier</button>
+        </div>
+      </div>
+
+      <div class="error-panel" id="errorPanel" hidden>
+        <div class="error-icon">!</div>
+        <p class="error-msg" id="errorMsg"></p>
+        <button class="btn-reset" id="btnErrorReset">Réessayer</button>
+      </div>
+    </main>
+
+    <footer class="footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+  </div>
+
+  <script>
+    let filePdf = null, fileSig = null;
+
+    const formPanel     = document.getElementById('formPanel');
+    const progressPanel = document.getElementById('progressPanel');
+    const resultPanel   = document.getElementById('resultPanel');
+    const errorPanel    = document.getElementById('errorPanel');
+    const ALL = [formPanel, progressPanel, resultPanel, errorPanel];
+
+    function showPanel(p) { ALL.forEach(x => { x.hidden = x !== p; x.style.display = x === p ? '' : 'none'; }); }
+
+    function bindDrop(zone, input, nameEl, onFile) {
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); });
+      zone.addEventListener('click', e => { if (!e.target.closest('label')) input.click(); });
+      input.addEventListener('change', () => { if (input.files[0]) onFile(input.files[0]); });
+    }
+
+    bindDrop(document.getElementById('dropPdf'), document.getElementById('inputPdf'), document.getElementById('namePdf'), f => {
+      filePdf = f;
+      document.getElementById('namePdf').textContent = f.name;
+      document.getElementById('dropPdf').classList.add('loaded');
+    });
+    bindDrop(document.getElementById('dropSig'), document.getElementById('inputSig'), document.getElementById('nameSig'), f => {
+      fileSig = f;
+      document.getElementById('nameSig').textContent = f.name;
+      document.getElementById('dropSig').classList.add('loaded');
+    });
+
+    document.getElementById('btnAction').addEventListener('click', async () => {
+      if (!filePdf) { alert('Sélectionnez un fichier PDF.'); return; }
+      if (!fileSig) { alert('Sélectionnez une image de signature PNG.'); return; }
+      showPanel(progressPanel);
+      const fd = new FormData();
+      fd.append('file', filePdf);
+      fd.append('signature', fileSig);
+      fd.append('page',  document.getElementById('inPage').value);
+      fd.append('x',     document.getElementById('inX').value);
+      fd.append('y',     document.getElementById('inY').value);
+      fd.append('width', document.getElementById('inWidth').value);
+      try {
+        const res  = await fetch('/pdf/add-signature', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erreur serveur');
+        document.getElementById('btnDownload').href     = `/download/${data.download_id}`;
+        document.getElementById('btnDownload').download = data.output_filename;
+        showPanel(resultPanel);
+      } catch(err) {
+        document.getElementById('errorMsg').textContent = err.message;
+        showPanel(errorPanel);
+      }
+    });
+
+    function reset() { filePdf = null; fileSig = null; document.getElementById('namePdf').textContent = ''; document.getElementById('nameSig').textContent = ''; document.getElementById('dropPdf').classList.remove('loaded'); document.getElementById('dropSig').classList.remove('loaded'); showPanel(formPanel); }
+    document.getElementById('btnReset').addEventListener('click', reset);
+    document.getElementById('btnErrorReset').addEventListener('click', reset);
+
+    showPanel(formPanel);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js');
+  </script>
+  <script src="/static/js/banner.js"></script>
+</body>
+</html>
