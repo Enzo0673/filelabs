@@ -448,3 +448,37 @@ def test_image_upscale_invalid_scale(app_client, sample_jpg_bytes):
         data={"scale": "10x"},
     )
     assert r.status_code in (400, 422, 500)
+
+
+# ─── /utils/hash ──────────────────────────────────────────────────────────────
+
+def test_utils_hash_default(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/utils/hash",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert "md5" in data
+    assert "sha256" in data
+    assert len(data["md5"]) == 32
+    assert len(data["sha256"]) == 64
+
+def test_utils_hash_sha512(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/utils/hash",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"algorithms": "sha512"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert "sha512" in data
+    assert len(data["sha512"]) == 128
+
+def test_utils_hash_invalid_algo(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/utils/hash",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"algorithms": "md2"},
+    )
+    assert r.status_code in (400, 422)

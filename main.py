@@ -1631,6 +1631,28 @@ async def image_upscale(
         input_path.unlink(missing_ok=True)
 
 
+# ---- Hasher fichier ----
+_VALID_HASH_ALGOS = {"md5", "sha256", "sha512"}
+
+@app.post("/utils/hash")
+async def utils_hash(
+    file: UploadFile = File(...),
+    algorithms: str = Form("md5,sha256"),
+):
+    algo_list = [a.strip().lower() for a in algorithms.split(",") if a.strip()]
+    invalid = [a for a in algo_list if a not in _VALID_HASH_ALGOS]
+    if invalid:
+        raise HTTPException(status_code=400, detail=f"Algorithme(s) non supporté(s) : {invalid}")
+    if not algo_list:
+        algo_list = ["md5", "sha256"]
+
+    content = await file.read()
+    result = {}
+    for algo in algo_list:
+        result[algo] = hashlib.new(algo, content).hexdigest()
+    return result
+
+
 @app.delete("/cleanup/{uid}")
 async def cleanup(uid: str):
     _validate_uid(uid)
