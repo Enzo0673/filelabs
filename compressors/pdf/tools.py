@@ -20,6 +20,9 @@ from PIL import Image
 import io
 import zipfile
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ---- Fusionner PDF ----
@@ -443,9 +446,9 @@ def repair_pdf(
                                         f"{x1:.2f} {y1:.2f} cm {name} Do Q\n"
                                     ).encode()
                                     flattened_streams.append(pikepdf.Stream(pdf, stream_data))
-                        except Exception:
+                        except Exception as e:
+                            logger.debug("Annotation flatten skip: %s", e)
                             continue
-                    # Supprimer les annotations de la page
                     del page["/Annots"]
                     # Ajouter les streams aplatis
                     if flattened_streams:
@@ -502,7 +505,8 @@ def _is_blank_page(page) -> bool:
             rb'\s*(q|Q|cm|w|J|j|M|d|ri|i|gs|W|n)\s*', b'', data
         ).strip()
         return len(stripped) == 0
-    except Exception:
+    except Exception as e:
+        logger.debug("Blank page detection fallback: %s", e)
         return False
 
 

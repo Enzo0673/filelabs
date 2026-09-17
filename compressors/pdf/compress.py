@@ -12,6 +12,9 @@ from concurrent.futures import ThreadPoolExecutor
 import pikepdf
 from PIL import Image
 import io
+import logging
+
+logger = logging.getLogger(__name__)
 
 DPI_PROFILES = {
     "light":      150,
@@ -43,8 +46,8 @@ def compress_pdf(
                 for key in list(meta.keys()):
                     try:
                         del meta[key]
-                    except Exception:
-                        pass
+                    except (KeyError, AttributeError) as e:
+                        logger.debug("Metadata key skip %r: %s", key, e)
 
         # Recompresser les images internes (parallèle)
         with ThreadPoolExecutor() as executor:
@@ -92,7 +95,8 @@ def _recompress_page_images(page, quality: int):
                     new_data = buf.getvalue()
                     if len(new_data) < len(raw):
                         xobj.write(new_data, filter=pikepdf.Name("/DCTDecode"))
-            except Exception:
+            except Exception as e:
+                logger.debug("Image XObject skip (recompression): %s", e)
                 continue
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Page XObjects skip (recompression): %s", e)

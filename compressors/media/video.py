@@ -10,7 +10,10 @@ import subprocess
 import shutil
 import os
 import re as _re
+import logging
 from typing import Callable, Optional
+
+logger = logging.getLogger(__name__)
 
 # CRF par niveau (plus le chiffre est haut, plus la compression est forte)
 # H.264 : 18 (visuel lossless) → 28 (bon) → 35 (agressif)
@@ -136,7 +139,8 @@ def compress_video(
     try:
         probe = ffmpeg.probe(str(input_path))
         duration = float(probe["format"]["duration"])
-    except Exception:
+    except Exception as e:
+        logger.debug("FFmpeg probe failed, progression indisponible: %s", e)
         duration = None
 
     # Lancer ffmpeg avec progression sur stderr
