@@ -396,3 +396,22 @@ def test_compress_archive_missing_file_raises():
     with tempfile.TemporaryDirectory() as d:
         with pytest.raises(Exception):
             compress_archive(Path(d) / "missing.zip", Path(d) / "out.zip")
+
+
+# ─── R1 — ThreadPoolExecutor propagation d'exceptions ────────────────────────
+
+from unittest.mock import patch
+
+
+def test_compress_pdf_propagates_thread_exception():
+    """Les exceptions dans les threads de recompression doivent remonter."""
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "input.pdf"
+        out = Path(d) / "output.pdf"
+        inp.write_bytes(_make_pdf(1))
+        with patch(
+            "compressors.pdf.compress._recompress_page_images",
+            side_effect=RuntimeError("thread error simulé"),
+        ):
+            with pytest.raises(RuntimeError, match="thread error simulé"):
+                compress_pdf(inp, out)
