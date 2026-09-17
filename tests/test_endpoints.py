@@ -268,3 +268,119 @@ def test_pdf_extract_text_empty_pdf(app_client, sample_pdf_bytes):
     assert resp.status_code == 200
     body = resp.json()
     assert "is_scanned" in body or "success" in body
+
+
+# ─── /image/resize ───────────────────────────────────────────────────────────
+
+def test_image_resize_returns_success(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/image/resize",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"width": "50", "height": "50"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+
+def test_image_resize_missing_dims_returns_success(app_client, sample_jpg_bytes):
+    """Sans width/height → ValueError → 500."""
+    resp = app_client.post(
+        "/image/resize",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+    )
+    assert resp.status_code == 500
+
+
+# ─── /image/convert ──────────────────────────────────────────────────────────
+
+def test_image_convert_jpg_to_webp(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/image/convert",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"target_format": "webp"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+
+def test_image_convert_invalid_format_returns_400(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/image/convert",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"target_format": "exe"},
+    )
+    assert resp.status_code == 400
+
+
+# ─── /image/crop ─────────────────────────────────────────────────────────────
+
+def test_image_crop_returns_success(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/image/crop",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"left": "0", "top": "0", "right": "10", "bottom": "10"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+
+def test_image_crop_missing_right_returns_422(app_client, sample_jpg_bytes):
+    """right/bottom sont requis (Form(...))."""
+    resp = app_client.post(
+        "/image/crop",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"left": "0", "top": "0"},
+    )
+    assert resp.status_code == 422
+
+
+# ─── /image/rotate ───────────────────────────────────────────────────────────
+
+def test_image_rotate_90(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/image/rotate",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"angle": "90"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+
+def test_image_rotate_flip_horizontal(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/image/rotate",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"flip": "horizontal"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+
+# ─── /compress — vidéo : validation paramètres seulement ────────────────────
+
+def test_compress_video_invalid_codec_returns_400(app_client, sample_jpg_bytes):
+    """Validation codec avant compression — pas besoin de ffmpeg."""
+    resp = app_client.post(
+        "/compress",
+        files={"file": ("test.mp4", sample_jpg_bytes, "video/mp4")},
+        data={"level": "standard", "vid_codec": "xvid"},
+    )
+    assert resp.status_code == 400
+
+
+def test_compress_video_invalid_preset_returns_400(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/compress",
+        files={"file": ("test.mp4", sample_jpg_bytes, "video/mp4")},
+        data={"level": "standard", "vid_preset": "turbo"},
+    )
+    assert resp.status_code == 400
+
+
+def test_compress_video_invalid_height_returns_400(app_client, sample_jpg_bytes):
+    resp = app_client.post(
+        "/compress",
+        files={"file": ("test.mp4", sample_jpg_bytes, "video/mp4")},
+        data={"level": "standard", "vid_max_height": "1440"},  # non dans _VALID_HEIGHTS
+    )
+    assert resp.status_code == 400
