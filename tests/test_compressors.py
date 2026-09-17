@@ -474,3 +474,35 @@ def test_extract_pdf_images_invalid_mode():
         inp.write_bytes(_make_pdf(1))
         with pytest.raises(ValueError, match="mode"):
             extract_pdf_images(inp, out, mode="invalid")
+
+
+# ─── add_pdf_signature ─────────────────────────────────────────────────────────
+
+from compressors.pdf.tools import add_pdf_signature
+
+def _make_sig_png() -> bytes:
+    """PNG 50x20 RGBA blanc semi-transparent."""
+    img = Image.new("RGBA", (50, 20), (0, 0, 0, 128))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+def test_add_pdf_signature_basic():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.pdf"
+        sig = Path(d) / "sig.png"
+        out = Path(d) / "out.pdf"
+        inp.write_bytes(_make_pdf(2))
+        sig.write_bytes(_make_sig_png())
+        add_pdf_signature(inp, sig, out, page=1, x=50.0, y=50.0, width=100.0)
+        assert out.exists() and out.stat().st_size > 0
+
+def test_add_pdf_signature_invalid_page():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.pdf"
+        sig = Path(d) / "sig.png"
+        out = Path(d) / "out.pdf"
+        inp.write_bytes(_make_pdf(1))
+        sig.write_bytes(_make_sig_png())
+        with pytest.raises(ValueError, match="page"):
+            add_pdf_signature(inp, sig, out, page=5, x=0.0, y=0.0, width=50.0)

@@ -608,5 +608,76 @@ def extract_pdf_images(input_path: Path, output_path: Path, mode: str = "embedde
                             continue
                 except Exception as e:
                     logger.debug("Page XObject scan skip: %s", e)
-                    continue
+    return output_path
+
+
+# ---- Signature PDF ----
+def add_pdf_signature(
+    input_path: Path,
+    signature_path: Path,
+    output_path: Path,
+    page: int = 1,
+    x: float = 50.0,
+    y: float = 50.0,
+    width: float = 150.0,
+) -> Path:
+    """
+    Injecte une image PNG comme signature sur la page `page` (1-indexé).
+    x, y : position en bas-gauche (points PDF, origine bas-gauche de la page).
+    width : largeur en points PDF (hauteur calculée proportionnellement).
+    """
+    output_path = output_path.with_suffix(".pdf")
+
+    # Charger la signature et calculer hauteur proportionnelle
+    sig_img = Image.open(signature_path).convert("RGBA")
+    aspect = sig_img.height / sig_img.width
+    height = width * aspect
+
+    # Encoder la signature en JPEG (fond blanc pour les canaux alpha)
+    bg = Image.new("RGB", sig_img.size, (255, 255, 255))
+    bg.paste(sig_img, mask=sig_img.split()[3])
+    buf = io.BytesIO()
+    bg.save(buf, format="JPEG", quality=90)
+    jpeg_bytes = buf.getvalue()
+
+    with pikepdf.open(input_path) as pdf:
+        total = len(pdf.pages)
+        if page < 1 or page > total:
+            raise ValueError(f"page {page} invalide (PDF a {total} pages)")
+
+        target_page = pdf.pages[page - 1]
+
+        # Créer le stream image JPEG comme XObject
+        sig_xobj = pikepdf.Stream(pdf, jpeg_bytes)
+        sig_xobj["/Type"] = pikepdf.Name("/XObject")
+        sig_xobj["/Subtype"] = pikepdf.Name("/Image")
+        sig_xobj["/Filter"] = pikepdf.Name("/DCTDecode")
+        sig_xobj["/ColorSpace"] = pikepdf.Name("/DeviceRGB")
+        sig_xobj["/BitsPerComponent"] = pikepdf.Integer(8)
+        sig_xobj["/Width"] = pikepdf.Integer(sig_img.width)
+        sig_xobj["/Height"] = pikepdf.Integer(sig_img.height)
+
+        # Injecter dans les ressources de la page
+        if "/Resources" not in target_page:
+            target_page["/Resources"] = pikepdf.Dictionary()
+        resources = target_page["/Resources"]
+        if "/XObject" not in resources:
+            resources["/XObject"] = pikepdf.Dictionary()
+
+        xobj_name = "/Sig0"
+        resources["/XObject"][xobj_name] = sig_xobj
+
+        # Ajouter le stream de contenu pour afficher l'image
+        content_stream = f"q {width:.2f} 0 0 {height:.2f} {x:.2f} {y:.2f} cm {xobj_name} Do Q"
+        existing = target_page.get("/Contents")
+        new_stream = pikepdf.Stream(pdf, content_stream.encode())
+        if existing is None:
+            target_page["/Contents"] = new_stream
+        elif isinstance(existing, pikepdf.Array):
+            existing.append(new_stream)
+        else:
+            target_page["/Contents"] = pikepdf.Array([existing, new_stream])
+
+        pdf.save(output_path, compress_streams=True)
+
     return output_path
