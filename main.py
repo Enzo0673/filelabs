@@ -486,6 +486,7 @@ async def compress(
     uid = uuid.uuid4().hex
     original_ext = Path(file.filename).suffix.lower()
     input_path = UPLOAD_DIR / f"{uid}_input{original_ext}"
+    progress_key = None  # initialisé avant le try pour le finally
 
     mime = file.content_type or mimetypes.guess_type(file.filename)[0] or ""
     file_type = detect_type(file.filename, mime)
@@ -566,8 +567,8 @@ async def compress(
         raise HTTPException(status_code=500, detail="Erreur lors du traitement du fichier")
     finally:
         input_path.unlink(missing_ok=True)
-
-
+        if progress_key:
+            _video_progress.pop(progress_key, None)
 @app.get("/download/{uid}")
 async def download(uid: str):
     _validate_uid(uid)

@@ -415,3 +415,24 @@ def test_compress_pdf_propagates_thread_exception():
         ):
             with pytest.raises(RuntimeError, match="thread error simulé"):
                 compress_pdf(inp, out)
+
+
+# ─── R3 — Progress dict cleanup ───────────────────────────────────────────────
+
+def test_video_progress_key_cleaned_on_error(app_client, sample_jpg_bytes, monkeypatch):
+    """Si /compress échoue pendant la compression vidéo, la clé progress_key
+    doit être supprimée du dict _video_progress."""
+    import main as app_module
+
+    test_job_id = "a" * 32
+
+    # Mocker aussi magic bytes pour que le fichier passe la validation
+    with patch("main._verify_magic_bytes", return_value=True), \
+         patch("main.compress_video", side_effect=RuntimeError("ffmpeg crash")):
+        app_client.post(
+            "/compress",
+            files={"file": ("test.mp4", sample_jpg_bytes, "video/mp4")},
+            data={"level": "standard", "job_id": test_job_id},
+        )
+
+    assert test_job_id not in app_module._video_progress
