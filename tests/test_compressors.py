@@ -592,3 +592,67 @@ def test_upscale_image_invalid_scale():
         inp.write_bytes(_make_jpg())
         with pytest.raises(ValueError, match="scale"):
             upscale_image(inp, out, scale="5x")
+
+
+# ─── extract_audio ────────────────────────────────────────────────────────────
+
+from compressors.media.video import extract_audio, extract_thumbnails
+
+def test_extract_audio_invalid_format():
+    """Format invalide doit lever ValueError avant d'appeler ffmpeg."""
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.mp4"
+        out = Path(d) / "out.xyz"
+        inp.write_bytes(b"\x00" * 100)
+        with pytest.raises(ValueError, match="format"):
+            extract_audio(inp, out, fmt="xyz")
+
+def test_extract_thumbnails_invalid_count():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.mp4"
+        out_dir = Path(d) / "thumbs"
+        inp.write_bytes(b"\x00" * 100)
+        with pytest.raises(ValueError, match="count"):
+            extract_thumbnails(inp, out_dir, count=0)
+
+def test_extract_thumbnails_count_too_high():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.mp4"
+        out_dir = Path(d) / "thumbs"
+        inp.write_bytes(b"\x00" * 100)
+        with pytest.raises(ValueError, match="count"):
+            extract_thumbnails(inp, out_dir, count=11)
+
+
+# ─── QR Code ──────────────────────────────────────────────────────────────────
+
+from compressors.qr import generate_qr, read_qr
+
+def test_generate_qr_basic():
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "qr.png"
+        result = generate_qr("https://filelabs.onrender.com", out)
+        assert result.exists() and result.stat().st_size > 0
+
+def test_generate_qr_empty_text():
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "qr.png"
+        with pytest.raises(ValueError, match="vide"):
+            generate_qr("", out)
+
+def test_read_qr_roundtrip():
+    """Générer puis lire le QR doit retourner le texte original."""
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "qr.png"
+        text = "FileLabs test QR"
+        generate_qr(text, out)
+        result = read_qr(out)
+        assert result["data"] == text
+
+def test_read_qr_no_code():
+    """Une image sans QR doit retourner data=None."""
+    with tempfile.TemporaryDirectory() as d:
+        img_path = Path(d) / "blank.png"
+        img_path.write_bytes(_make_png((100, 100)))
+        result = read_qr(img_path)
+        assert result.get("data") is None

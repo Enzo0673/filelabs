@@ -429,3 +429,100 @@ def test_pdf_add_signature_invalid_page(app_client, sample_pdf_bytes, sample_png
         data={"page": "99", "x": "50", "y": "50", "width": "100"},
     )
     assert r.status_code in (400, 500)
+
+# ─── /image/watermark ─────────────────────────────────────────────────────────
+
+def test_image_watermark_text(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/watermark",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"text": "© FileLabs", "position": "bottom-right", "opacity": "50"},
+    )
+    assert r.status_code == 200
+    assert r.json()["success"] is True
+
+def test_image_watermark_no_text_no_logo(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/watermark",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"opacity": "50"},
+    )
+    assert r.status_code in (400, 422, 500)
+
+# ─── /image/filter ────────────────────────────────────────────────────────────
+
+def test_image_filter_grayscale(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/filter",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"filter": "grayscale"},
+    )
+    assert r.status_code == 200
+
+def test_image_filter_sepia(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/filter",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"filter": "sepia"},
+    )
+    assert r.status_code == 200
+
+def test_image_filter_invalid(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/filter",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"filter": "oil"},
+    )
+    assert r.status_code in (400, 422, 500)
+
+# ─── /image/upscale ───────────────────────────────────────────────────────────
+
+def test_image_upscale_2x(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/upscale",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"scale": "2x"},
+    )
+    assert r.status_code == 200
+
+def test_image_upscale_invalid_scale(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/upscale",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"scale": "10x"},
+    )
+    assert r.status_code in (400, 422, 500)
+
+
+# ─── /utils/hash ──────────────────────────────────────────────────────────────
+
+def test_utils_hash_default(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/utils/hash",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert "md5" in data
+    assert "sha256" in data
+    assert len(data["md5"]) == 32
+    assert len(data["sha256"]) == 64
+
+def test_utils_hash_sha512(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/utils/hash",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"algorithms": "sha512"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert "sha512" in data
+    assert len(data["sha512"]) == 128
+
+def test_utils_hash_invalid_algo(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/utils/hash",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"algorithms": "md2"},
+    )
+    assert r.status_code in (400, 422)
