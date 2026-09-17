@@ -384,3 +384,67 @@ def test_compress_video_invalid_height_returns_400(app_client, sample_jpg_bytes)
         data={"level": "standard", "vid_max_height": "1440"},  # non dans _VALID_HEIGHTS
     )
     assert resp.status_code == 400
+
+
+# ─── /image/watermark ─────────────────────────────────────────────────────────
+
+def test_image_watermark_text(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/watermark",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"text": "© FileLabs", "position": "bottom-right", "opacity": "50"},
+    )
+    assert r.status_code == 200
+    assert r.json()["success"] is True
+
+def test_image_watermark_no_text_no_logo(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/watermark",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"opacity": "50"},
+    )
+    assert r.status_code in (400, 422, 500)
+
+# ─── /image/filter ────────────────────────────────────────────────────────────
+
+def test_image_filter_grayscale(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/filter",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"filter": "grayscale"},
+    )
+    assert r.status_code == 200
+
+def test_image_filter_sepia(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/filter",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"filter": "sepia"},
+    )
+    assert r.status_code == 200
+
+def test_image_filter_invalid(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/filter",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"filter": "oil"},
+    )
+    assert r.status_code in (400, 422, 500)
+
+# ─── /image/upscale ───────────────────────────────────────────────────────────
+
+def test_image_upscale_2x(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/upscale",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"scale": "2x"},
+    )
+    assert r.status_code == 200
+
+def test_image_upscale_invalid_scale(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/image/upscale",
+        files={"file": ("test.jpg", sample_jpg_bytes, "image/jpeg")},
+        data={"scale": "10x"},
+    )
+    assert r.status_code in (400, 422, 500)

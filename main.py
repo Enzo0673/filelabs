@@ -19,7 +19,7 @@ import shutil
 import subprocess
 import asyncio
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -37,6 +37,7 @@ from compressors.image import (
     compress_image,
     resize_image, convert_image, crop_image, rotate_image,
     get_media_info, download_images,
+    watermark_image, apply_filter, upscale_image,
 )
 from compressors.pdf import (
     compress_pdf,
@@ -1539,6 +1540,93 @@ async def image_rotate(
     except Exception as e:
         logger.error("%s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Erreur lors du traitement du fichier")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Filigrane image ----
+@app.post("/image/watermark")
+async def image_watermark(
+    file: UploadFile = File(...),
+    text: Optional[str] = Form(None),
+    logo: Optional[UploadFile] = File(None),
+    position: str = Form("bottom-right"),
+    opacity: int = Form(50),
+):
+    if not text and not logo:
+        raise HTTPException(status_code=400, detail="Fournir text ou logo")
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "image.jpg").suffix.lower() or ".jpg"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    logo_path = None
+    output_path = OUTPUT_DIR / f"{uid}_output{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["image"])
+        if logo:
+            logo_path = UPLOAD_DIR / f"{uid}_logo.png"
+            await _save_upload(logo, logo_path, MAX_SIZE["image"])
+        watermark_image(input_path, output_path, text=text, logo_path=logo_path, position=position, opacity=opacity)
+        stem = Path(file.filename or "image").stem
+        return {"success": True, "download_id": uid, "output_filename": f"{stem}_watermarked{ext}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement")
+    finally:
+        input_path.unlink(missing_ok=True)
+        if logo_path:
+            logo_path.unlink(missing_ok=True)
+
+
+# ---- Filtre image (N&B / Sépia) ----
+@app.post("/image/filter")
+async def image_filter(
+    file: UploadFile = File(...),
+    filter: str = Form(...),
+):
+    if filter not in ("grayscale", "sepia"):
+        raise HTTPException(status_code=400, detail="filter doit être 'grayscale' ou 'sepia'")
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "image.jpg").suffix.lower() or ".jpg"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    output_path = OUTPUT_DIR / f"{uid}_output{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["image"])
+        apply_filter(input_path, output_path, filter_name=filter)
+        stem = Path(file.filename or "image").stem
+        return {"success": True, "download_id": uid, "output_filename": f"{stem}_{filter}{ext}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Agrandir image ----
+@app.post("/image/upscale")
+async def image_upscale(
+    file: UploadFile = File(...),
+    scale: str = Form("2x"),
+):
+    if scale not in ("2x", "3x", "4x"):
+        raise HTTPException(status_code=400, detail="scale doit être 2x, 3x ou 4x")
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "image.jpg").suffix.lower() or ".jpg"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    output_path = OUTPUT_DIR / f"{uid}_output{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["image"])
+        upscale_image(input_path, output_path, scale=scale)
+        stem = Path(file.filename or "image").stem
+        return {"success": True, "download_id": uid, "output_filename": f"{stem}_{scale}{ext}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement")
     finally:
         input_path.unlink(missing_ok=True)
 
