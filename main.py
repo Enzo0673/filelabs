@@ -53,6 +53,8 @@ from compressors.media import (
     transcribe_media, WHISPER_AVAILABLE,
 )
 from compressors.archive import compress_archive
+from compressors.qr import generate_qr, read_qr
+from compressors.media.video import extract_audio, extract_thumbnails
 
 # Résolution des chemins compatible PyInstaller (--onefile extrait dans sys._MEIPASS)
 if getattr(sys, "frozen", False):
@@ -149,7 +151,7 @@ _rate_buckets: dict = {}  # {ip: [timestamp, ...]}
 _RATE_LIMIT = 20          # requêtes max
 _RATE_WINDOW = 60         # par fenêtre de 60s
 _RATE_LAST_PURGE = time.time()
-_PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/", "/media/")
+_PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/", "/media/", "/qr/", "/utils/")
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
@@ -1708,6 +1710,97 @@ async def utils_hash(
     for algo in algo_list:
         result[algo] = hashlib.new(algo, content).hexdigest()
     return result
+
+
+
+# ---- QR Code — Générer ----
+@app.post("/qr/generate")
+async def qr_generate(text: str = Form(...)):
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Le texte ne peut pas être vide")
+    uid = uuid.uuid4().hex
+    output_path = OUTPUT_DIR / f"{uid}_output.png"
+    try:
+        generate_qr(text.strip(), output_path)
+        return {"success": True, "download_id": uid, "output_filename": "qrcode.png"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de la génération du QR")
+
+
+# ---- QR Code — Lire ----
+@app.post("/qr/read")
+async def qr_read(file: UploadFile = File(...)):
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "image.png").suffix.lower() or ".png"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["image"])
+        result = read_qr(input_path)
+        return result
+    except ImportError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de la lecture du QR")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Extraire audio ----
+@app.post("/video/extract-audio")
+async def video_extract_audio(
+    file: UploadFile = File(...),
+    format: str = Form("mp3"),
+):
+    if format not in ("mp3", "wav"):
+        raise HTTPException(status_code=400, detail="format doit être 'mp3' ou 'wav'")
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "video.mp4").suffix.lower() or ".mp4"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    output_path = OUTPUT_DIR / f"{uid}_output.{format}"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["video"])
+        extract_audio(input_path, output_path, fmt=format)
+        stem = Path(file.filename or "video").stem
+        return {"success": True, "download_id": uid, "output_filename": f"{stem}_audio.{format}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de l'extraction audio")
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+# ---- Thumbnails vidéo ----
+@app.post("/video/thumbnails")
+async def video_thumbnails(
+    file: UploadFile = File(...),
+    count: int = Form(5),
+):
+    if count < 1 or count > 10:
+        raise HTTPException(status_code=400, detail="count doit être entre 1 et 10")
+    uid = uuid.uuid4().hex
+    ext = Path(file.filename or "video.mp4").suffix.lower() or ".mp4"
+    input_path = UPLOAD_DIR / f"{uid}_input{ext}"
+    output_dir = OUTPUT_DIR / f"{uid}_thumbs"
+    try:
+        await _save_upload(file, input_path, MAX_SIZE["video"])
+        zip_path = extract_thumbnails(input_path, output_dir, count=count)
+        final_path = OUTPUT_DIR / f"{uid}_output.zip"
+        zip_path.rename(final_path)
+        return {"success": True, "download_id": uid, "output_filename": "thumbnails.zip"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("%s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur lors de l'extraction des thumbnails")
+    finally:
+        input_path.unlink(missing_ok=True)
+        shutil.rmtree(output_dir, ignore_errors=True)
 
 
 @app.delete("/cleanup/{uid}")

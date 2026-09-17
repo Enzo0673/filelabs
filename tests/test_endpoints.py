@@ -526,3 +526,43 @@ def test_utils_hash_invalid_algo(app_client, sample_jpg_bytes):
         data={"algorithms": "md2"},
     )
     assert r.status_code in (400, 422)
+
+# ─── /qr/ ─────────────────────────────────────────────────────────────────────
+
+def test_qr_generate(app_client):
+    r = app_client.post("/qr/generate", data={"text": "https://filelabs.onrender.com"})
+    assert r.status_code == 200
+    assert r.json()["success"] is True
+
+def test_qr_generate_empty_text(app_client):
+    r = app_client.post("/qr/generate", data={"text": ""})
+    assert r.status_code in (400, 422)
+
+def test_qr_read(app_client, sample_png_bytes):
+    # PNG blanc sans QR — doit retourner data null ou 200 avec data=None
+    r = app_client.post(
+        "/qr/read",
+        files={"file": ("test.png", sample_png_bytes, "image/png")},
+    )
+    assert r.status_code == 200
+    assert "data" in r.json()
+
+# ─── /video/extract-audio ─────────────────────────────────────────────────────
+
+def test_video_extract_audio_invalid_format(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/video/extract-audio",
+        files={"file": ("test.mp4", sample_jpg_bytes, "video/mp4")},
+        data={"format": "xyz"},
+    )
+    assert r.status_code in (400, 422)
+
+# ─── /video/thumbnails ────────────────────────────────────────────────────────
+
+def test_video_thumbnails_invalid_count(app_client, sample_jpg_bytes):
+    r = app_client.post(
+        "/video/thumbnails",
+        files={"file": ("test.mp4", sample_jpg_bytes, "video/mp4")},
+        data={"count": "0"},
+    )
+    assert r.status_code in (400, 422)
