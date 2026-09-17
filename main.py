@@ -247,6 +247,7 @@ MAX_MERGE_FILES = 50
 
 # Progression vidéo — partagé entre thread compress et endpoint SSE
 _video_progress: dict = {}  # {uid: float 0-100}
+_video_progress_lock = threading.Lock()
 _download_progress: dict[str, float | None] = {}
 # Limite de téléchargements simultanés (évite la saturation CPU/réseau)
 _DOWNLOAD_SEMAPHORE = asyncio.Semaphore(3)
@@ -522,10 +523,12 @@ async def compress(
         elif file_type == "video":
             # Utiliser job_id fourni par le client pour la progression SSE
             progress_key = job_id if (job_id and _UID_RE.match(job_id)) else uid
-            _video_progress[progress_key] = 0.0
+            with _video_progress_lock:
+                _video_progress[progress_key] = 0.0
 
             def _progress_cb(pct: float):
-                _video_progress[progress_key] = pct
+                with _video_progress_lock:
+                    _video_progress[progress_key] = pct
 
             loop = asyncio.get_running_loop()
             output_path = await loop.run_in_executor(
@@ -536,10 +539,12 @@ async def compress(
                     max_height=vid_max_height, on_progress=_progress_cb,
                 )
             )
-            _video_progress[progress_key] = 100.0
+            with _video_progress_lock:
+                _video_progress[progress_key] = 100.0
             # Laisser le temps au client SSE de lire la valeur 100 avant de supprimer
             await asyncio.sleep(2.0)
-            _video_progress.pop(progress_key, None)
+            with _video_progress_lock:
+                _video_progress.pop(progress_key, None)
         else:
             output_path = compress_archive(
                 input_path, output_path, level,
@@ -568,7 +573,8 @@ async def compress(
     finally:
         input_path.unlink(missing_ok=True)
         if progress_key:
-            _video_progress.pop(progress_key, None)
+            with _video_progress_lock:
+                _video_progress.pop(progress_key, None)
 @app.get("/download/{uid}")
 async def download(uid: str):
     _validate_uid(uid)
@@ -1025,8 +1031,7 @@ async def office_to_pdf(file: UploadFile = File(...)):
     finally:
         input_path.unlink(missing_ok=True)
         if output_dir.exists():
-            import shutil as _shutil
-            _shutil.rmtree(output_dir, ignore_errors=True)
+            shutil.rmtree(output_dir, ignore_errors=True)
 
 
 # ---- Video Downloader — Analyse URL ----
@@ -1206,8 +1211,7 @@ async def media_download(body: _MediaDownloadRequest):
     result.rename(final_path)
     # Nettoyer le dossier de travail
     try:
-        import shutil as _sh
-        _sh.rmtree(work_dir, ignore_errors=True)
+        shutil.rmtree(work_dir, ignore_errors=True)
     except Exception:
         pass
 
