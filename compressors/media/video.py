@@ -5,6 +5,7 @@ FFmpeg peut être placé dans filelab/bin/ffmpeg.exe (pas besoin d'installation 
 """
 
 from pathlib import Path
+import zipfile
 import ffmpeg
 import subprocess
 import shutil
@@ -342,3 +343,63 @@ def add_text_video(
 
     ffmpeg.run(out, overwrite_output=True, quiet=True)
     return output_path
+
+
+# ---- Extraire audio ----
+def extract_audio(input_path: Path, output_path: Path, fmt: str = "mp3") -> Path:
+    """Extrait la piste audio d'une vidéo. fmt : 'mp3' ou 'wav'."""
+    if fmt not in ("mp3", "wav"):
+        raise ValueError(f"format invalide : {fmt!r} (attendu 'mp3' ou 'wav')")
+
+    output_path = output_path.with_suffix(f".{fmt}")
+    ffmpeg_bin = _find_ffmpeg()
+
+    codec = "libmp3lame" if fmt == "mp3" else "pcm_s16le"
+    cmd = [ffmpeg_bin, "-y", "-i", str(input_path), "-vn", "-acodec", codec, str(output_path)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg error: {result.stderr[-500:]}")
+    return output_path
+
+
+# ---- Thumbnails vidéo ----
+def extract_thumbnails(input_path: Path, output_dir: Path, count: int = 5) -> Path:
+    """
+    Capture `count` frames réparties dans la vidéo.
+    Retourne un ZIP des JPEG dans output_dir.parent / <stem>.zip.
+    """
+    if count < 1 or count > 10:
+        raise ValueError(f"count invalide : {count} (attendu 1-10)")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ffmpeg_bin = _find_ffmpeg()
+
+    # Probe durée via ffprobe si disponible, sinon ffmpeg
+    ffprobe_bin = shutil.which("ffprobe") or ffmpeg_bin.replace("ffmpeg", "ffprobe")
+    probe_cmd = [
+        ffprobe_bin if (Path(ffprobe_bin).exists() or shutil.which(str(ffprobe_bin))) else ffmpeg_bin,
+        "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", str(input_path),
+    ]
+    result = subprocess.run(probe_cmd, capture_output=True, text=True)
+    try:
+        duration = float(result.stdout.strip())
+    except ValueError:
+        duration = 60.0  # fallback
+
+    interval = max(1, duration / (count + 1))
+
+    for i in range(count):
+        t = interval * (i + 1)
+        out_file = output_dir / f"thumb_{i+1:02d}.jpg"
+        cmd = [
+            ffmpeg_bin, "-y", "-ss", str(t), "-i", str(input_path),
+            "-frames:v", "1", "-q:v", "2", str(out_file),
+        ]
+        subprocess.run(cmd, capture_output=True)
+
+    zip_path = output_dir.parent / f"{input_path.stem}_thumbnails.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in sorted(output_dir.glob("*.jpg")):
+            zf.write(f, f.name)
+    return zip_path

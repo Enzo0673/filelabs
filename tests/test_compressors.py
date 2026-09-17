@@ -592,3 +592,33 @@ def test_upscale_image_invalid_scale():
         inp.write_bytes(_make_jpg())
         with pytest.raises(ValueError, match="scale"):
             upscale_image(inp, out, scale="5x")
+
+
+# ─── extract_audio ────────────────────────────────────────────────────────────
+
+from compressors.media.video import extract_audio, extract_thumbnails
+
+def test_extract_audio_invalid_format():
+    """Format invalide doit lever ValueError avant d'appeler ffmpeg."""
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.mp4"
+        out = Path(d) / "out.xyz"
+        inp.write_bytes(b"\x00" * 100)
+        with pytest.raises(ValueError, match="format"):
+            extract_audio(inp, out, fmt="xyz")
+
+def test_extract_thumbnails_invalid_count():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.mp4"
+        out_dir = Path(d) / "thumbs"
+        inp.write_bytes(b"\x00" * 100)
+        with pytest.raises(ValueError, match="count"):
+            extract_thumbnails(inp, out_dir, count=0)
+
+def test_extract_thumbnails_count_too_high():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.mp4"
+        out_dir = Path(d) / "thumbs"
+        inp.write_bytes(b"\x00" * 100)
+        with pytest.raises(ValueError, match="count"):
+            extract_thumbnails(inp, out_dir, count=11)
