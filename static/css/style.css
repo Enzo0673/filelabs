@@ -989,6 +989,7 @@ body.home-body {
 
 /* ---- Tool sections (home) ---- */
 .home-tools-section {
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 40px 64px;
