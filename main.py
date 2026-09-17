@@ -23,6 +23,7 @@ from typing import List
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.gzip import GZipMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import StreamingResponse
 from pydantic import BaseModel
@@ -138,6 +139,7 @@ def _cleanup_outputs():
                 pass
 
 app = FastAPI(title="FileLabs", version="1.0.0")
+app.add_middleware(GZipMiddleware, minimum_size=1000)  # compresse CSS/JS/HTML en transit
 
 # Rate limiting — actif uniquement sur la version en ligne (Render injecte la var RENDER)
 _ON_RENDER = os.environ.get("RENDER") is not None  # True = on est en production sur Render

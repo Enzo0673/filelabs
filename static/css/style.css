@@ -204,6 +204,11 @@ main.main {
 }
 .drop-zone:hover::before,
 .drop-zone.drag-over::before { opacity: 1; }
+.drop-zone:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-glow);
+}
 .drop-zone.drag-over {
   border-color: var(--primary);
   background: var(--primary-muted);

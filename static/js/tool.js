@@ -52,8 +52,13 @@ function initTool(config) {
     return (bytes / (1024 * 1024)).toFixed(2) + ' Mo';
   }
 
-  // ---- Drag & Drop ----
+  // ---- Drag & Drop + accessibilité ----
   if (dropZone) {
+    // Rendre la drop zone focusable au clavier
+    dropZone.setAttribute('tabindex', '0');
+    dropZone.setAttribute('role', 'button');
+    dropZone.setAttribute('aria-label', 'Zone de dépôt de fichier — appuyez sur Entrée pour parcourir');
+
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
     dropZone.addEventListener('drop', e => {
@@ -66,6 +71,9 @@ function initTool(config) {
       if (e.target.closest('label')) return;
       fileInput.click();
     });
+    dropZone.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
 
     // Afficher la limite de taille dans la drop zone
     if (typeof FILE_SIZE_LIMITS !== 'undefined' && config.fileType) {
@@ -77,6 +85,14 @@ function initTool(config) {
         hint.textContent = `Max ${limitMb} Mo`;
         dropZone.appendChild(hint);
       }
+    }
+  }
+
+  // aria-label sur le label "Parcourir"
+  if (fileInput) {
+    const browseLabel = dropZone && dropZone.querySelector(`label[for="${fileInput.id}"]`);
+    if (browseLabel && !browseLabel.getAttribute('aria-label')) {
+      browseLabel.setAttribute('aria-label', 'Parcourir et sélectionner un fichier');
     }
   }
 
