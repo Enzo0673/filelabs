@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     poppler-utils \
     libreoffice \
+    libzbar0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
