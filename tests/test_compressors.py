@@ -506,3 +506,89 @@ def test_add_pdf_signature_invalid_page():
         sig.write_bytes(_make_sig_png())
         with pytest.raises(ValueError, match="page"):
             add_pdf_signature(inp, sig, out, page=5, x=0.0, y=0.0, width=50.0)
+
+
+# ─── filters image ─────────────────────────────────────────────────────────────
+
+from compressors.image.filters import watermark_image, apply_filter, upscale_image
+
+def test_watermark_image_text():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg((100, 100)))
+        result = watermark_image(inp, out, text="Test", position="bottom-right", opacity=50)
+        assert result.exists() and result.stat().st_size > 0
+
+def test_watermark_image_logo():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        logo = Path(d) / "logo.png"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg((100, 100)))
+        logo.write_bytes(_make_png((20, 20)))
+        result = watermark_image(inp, out, logo_path=logo, position="center", opacity=70)
+        assert result.exists() and result.stat().st_size > 0
+
+def test_watermark_image_no_text_no_logo():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg())
+        with pytest.raises(ValueError, match="text.*logo"):
+            watermark_image(inp, out)
+
+def test_apply_filter_grayscale():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg((50, 50)))
+        result = apply_filter(inp, out, filter_name="grayscale")
+        assert result.exists()
+
+def test_apply_filter_sepia():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg((50, 50)))
+        result = apply_filter(inp, out, filter_name="sepia")
+        assert result.exists()
+
+def test_apply_filter_invalid():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg())
+        with pytest.raises(ValueError):
+            apply_filter(inp, out, filter_name="oil_painting")
+
+def test_upscale_image_2x():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg((100, 100)))
+        result = upscale_image(inp, out, scale="2x")
+        assert result.exists()
+        with Image.open(result) as img:
+            assert img.size == (200, 200)
+
+def test_upscale_image_too_large():
+    """Refuser si le résultat dépasse 50 MP."""
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        # 4000x4000 * 4x = 16000x16000 = 256 MP > 50 MP
+        big = Image.new("RGB", (4000, 4000), (0, 0, 0))
+        buf = io.BytesIO()
+        big.save(buf, format="JPEG")
+        inp.write_bytes(buf.getvalue())
+        with pytest.raises(ValueError, match="50"):
+            upscale_image(inp, out, scale="4x")
+
+def test_upscale_image_invalid_scale():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.jpg"
+        out = Path(d) / "out.jpg"
+        inp.write_bytes(_make_jpg())
+        with pytest.raises(ValueError, match="scale"):
+            upscale_image(inp, out, scale="5x")
