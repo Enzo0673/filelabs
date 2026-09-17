@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install system dependencies
-        run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
+        run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils libzbar0
 
       - name: Install Python dependencies
         run: pip install -r requirements-dev.txt
