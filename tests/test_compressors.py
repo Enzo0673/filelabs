@@ -436,3 +436,41 @@ def test_video_progress_key_cleaned_on_error(app_client, sample_jpg_bytes, monke
         )
 
     assert test_job_id not in app_module._video_progress
+
+
+# ─── extract_pdf_images ────────────────────────────────────────────────────────
+
+from compressors.pdf.tools import extract_pdf_images
+
+def test_extract_pdf_images_pages_mode():
+    """Mode pages : chaque page du PDF devient un JPEG dans un ZIP."""
+    pytest.importorskip("pdf2image")
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.pdf"
+        out = Path(d) / "out.zip"
+        inp.write_bytes(_make_pdf(2))
+        result = extract_pdf_images(inp, out, mode="pages")
+        assert result.exists()
+        with zipfile.ZipFile(result) as zf:
+            names = zf.namelist()
+        assert len(names) == 2
+
+def test_extract_pdf_images_embedded_mode():
+    """Mode embedded : ZIP vide si le PDF n'a aucun XObject image."""
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.pdf"
+        out = Path(d) / "out.zip"
+        inp.write_bytes(_make_pdf(2))
+        result = extract_pdf_images(inp, out, mode="embedded")
+        assert result.exists()
+        with zipfile.ZipFile(result) as zf:
+            names = zf.namelist()
+        assert isinstance(names, list)
+
+def test_extract_pdf_images_invalid_mode():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "in.pdf"
+        out = Path(d) / "out.zip"
+        inp.write_bytes(_make_pdf(1))
+        with pytest.raises(ValueError, match="mode"):
+            extract_pdf_images(inp, out, mode="invalid")

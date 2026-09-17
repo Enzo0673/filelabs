@@ -542,3 +542,71 @@ def extract_pdf_text(input_path: str) -> dict:
         "total_chars": total_chars,
         "is_scanned": is_scanned,
     }
+
+
+# ---- Extraire images PDF ----
+def extract_pdf_images(input_path: Path, output_path: Path, mode: str = "embedded") -> Path:
+    """
+    mode='embedded' : extrait les XObjects Image (PNG/JPEG) de chaque page.
+    mode='pages'    : convertit chaque page en JPEG via pdf2image.
+    Retourne un ZIP.
+    """
+    if mode not in ("embedded", "pages"):
+        raise ValueError(f"mode invalide : {mode!r} (attendu 'embedded' ou 'pages')")
+
+    output_path = output_path.with_suffix(".zip")
+
+    if mode == "pages":
+        try:
+            from pdf2image import convert_from_path
+        except ImportError:
+            raise ImportError("pdf2image requis pour le mode 'pages' (pip install pdf2image)")
+        images = convert_from_path(str(input_path), fmt="jpeg", dpi=150)
+        with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for i, img in enumerate(images):
+                buf = io.BytesIO()
+                img.save(buf, format="JPEG", quality=85)
+                zf.writestr(f"page_{i+1:03d}.jpg", buf.getvalue())
+        return output_path
+
+    # mode == "embedded"
+    with pikepdf.open(input_path) as pdf:
+        with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for page_num, page in enumerate(pdf.pages):
+                try:
+                    resources = page.get("/Resources")
+                    if resources is None:
+                        continue
+                    xobjects = resources.get("/XObject")
+                    if xobjects is None:
+                        continue
+                    for name, xobj in xobjects.items():
+                        try:
+                            if xobj.get("/Subtype") != "/Image":
+                                continue
+                            raw = xobj.read_raw_bytes()
+                            filters = xobj.get("/Filter")
+                            ext = ".jpg" if str(filters) in ("/DCTDecode", "[/DCTDecode]") else ".png"
+                            if ext == ".png":
+                                w = int(xobj["/Width"])
+                                h = int(xobj["/Height"])
+                                cs = str(xobj.get("/ColorSpace", "/DeviceRGB"))
+                                mode_pil = "L" if "Gray" in cs else "RGB"
+                                try:
+                                    data = xobj.read_bytes()
+                                    img_pil = Image.frombytes(mode_pil, (w, h), data)
+                                    buf = io.BytesIO()
+                                    img_pil.save(buf, format="PNG")
+                                    raw = buf.getvalue()
+                                except Exception as e:
+                                    logger.debug("XObject PNG decode skip: %s", e)
+                                    continue
+                            fname = f"page{page_num+1:03d}_{name.lstrip('/')}{ext}"
+                            zf.writestr(fname, raw)
+                        except Exception as e:
+                            logger.debug("XObject skip: %s", e)
+                            continue
+                except Exception as e:
+                    logger.debug("Page XObject scan skip: %s", e)
+                    continue
+    return output_path
