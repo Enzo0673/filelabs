@@ -194,6 +194,8 @@ async def security_headers_middleware(request: Request, call_next):
         )
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
+            # ponytail: unsafe-inline requis — 20+ pages HTML ont des <script> inline (init tools,
+            # service worker registration). Supprimer nécessite de migrer tout en .js externe.
             f"script-src 'self' 'unsafe-inline' {cdn_origins}; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
@@ -217,9 +219,13 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
+_LOCAL_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
+_RENDER_ORIGIN = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+_ALLOWED_ORIGINS = _LOCAL_ORIGINS + ([_RENDER_ORIGIN] if _RENDER_ORIGIN else [])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type"],
 )

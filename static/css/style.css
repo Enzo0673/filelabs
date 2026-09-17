@@ -227,6 +227,7 @@ main.main {
 .btn-browse:hover { background: var(--primary-dim); transform: translateY(-1px); }
 .btn-browse:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .drop-formats { font-size: .75rem; color: var(--text-dim); margin-top: 4px; }
+.drop-limit   { font-size: .72rem; color: var(--text-muted); margin-top: 6px; opacity: .75; }
 
 /* ---- File preview ---- */
 .file-preview {

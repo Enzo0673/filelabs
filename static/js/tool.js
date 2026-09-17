@@ -66,6 +66,18 @@ function initTool(config) {
       if (e.target.closest('label')) return;
       fileInput.click();
     });
+
+    // Afficher la limite de taille dans la drop zone
+    if (typeof FILE_SIZE_LIMITS !== 'undefined' && config.fileType) {
+      const limitBytes = FILE_SIZE_LIMITS[config.fileType];
+      if (limitBytes) {
+        const limitMb = Math.round(limitBytes / 1024 / 1024);
+        const hint = document.createElement('p');
+        hint.className = 'drop-limit';
+        hint.textContent = `Max ${limitMb} Mo`;
+        dropZone.appendChild(hint);
+      }
+    }
   }
 
   if (fileInput) {
