@@ -266,3 +266,133 @@ def test_is_exec_magic_accepts_unknown():
     """Un fichier sans signature connue doit passer (permissif)."""
     import main as app_module
     assert app_module._is_exec_magic(b'\x00\x00\x00\x20\x66\x74\x79\x70') is False  # MP4 ftyp
+
+
+# ─── compress_image ──────────────────────────────────────────────────────────
+
+import tempfile
+from pathlib import Path
+from PIL import Image
+from compressors.image.compress import compress_image
+
+
+def _make_jpg(size=(20, 20)) -> bytes:
+    img = Image.new("RGB", size, color=(100, 149, 237))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    return buf.getvalue()
+
+
+def _make_png(size=(20, 20)) -> bytes:
+    img = Image.new("RGBA", size, color=(100, 149, 237, 255))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def test_compress_image_jpg_standard():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "input.jpg"
+        out = Path(d) / "output.jpg"
+        inp.write_bytes(_make_jpg())
+        result = compress_image(inp, out, level="standard")
+        assert result.exists()
+        assert result.stat().st_size > 0
+
+
+def test_compress_image_png_aggressive():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "input.png"
+        out = Path(d) / "output.png"
+        inp.write_bytes(_make_png())
+        result = compress_image(inp, out, level="aggressive")
+        assert result.exists()
+        assert result.stat().st_size > 0
+
+
+def test_compress_image_all_levels():
+    for level in ("light", "standard", "aggressive"):
+        with tempfile.TemporaryDirectory() as d:
+            inp = Path(d) / "input.jpg"
+            out = Path(d) / "output.jpg"
+            inp.write_bytes(_make_jpg())
+            result = compress_image(inp, out, level=level)
+            assert result.exists(), f"Niveau {level} n'a pas produit de fichier"
+
+
+def test_compress_image_missing_file_raises():
+    with tempfile.TemporaryDirectory() as d:
+        with pytest.raises(Exception):
+            compress_image(Path(d) / "missing.jpg", Path(d) / "out.jpg")
+
+
+# ─── compress_pdf ────────────────────────────────────────────────────────────
+
+from compressors.pdf.compress import compress_pdf
+
+
+def test_compress_pdf_standard():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "input.pdf"
+        out = Path(d) / "output.pdf"
+        inp.write_bytes(_make_pdf(1))
+        result = compress_pdf(inp, out, level="standard")
+        assert result.exists()
+        assert result.stat().st_size > 0
+
+
+def test_compress_pdf_all_levels():
+    for level in ("light", "standard", "aggressive"):
+        with tempfile.TemporaryDirectory() as d:
+            inp = Path(d) / "input.pdf"
+            out = Path(d) / "output.pdf"
+            inp.write_bytes(_make_pdf(1))
+            result = compress_pdf(inp, out, level=level)
+            assert result.exists(), f"Niveau {level} n'a pas produit de fichier"
+
+
+def test_compress_pdf_no_metadata():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "input.pdf"
+        out = Path(d) / "output.pdf"
+        inp.write_bytes(_make_pdf(1))
+        result = compress_pdf(inp, out, remove_metadata=True)
+        assert result.exists()
+
+
+# ─── compress_archive ────────────────────────────────────────────────────────
+
+from compressors.archive import compress_archive
+
+
+def _make_zip() -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("hello.txt", "hello world " * 100)
+    return buf.getvalue()
+
+
+def test_compress_archive_zip_standard():
+    with tempfile.TemporaryDirectory() as d:
+        inp = Path(d) / "input.zip"
+        out = Path(d) / "output.zip"
+        inp.write_bytes(_make_zip())
+        result = compress_archive(inp, out, level="standard")
+        assert result.exists()
+        assert result.stat().st_size > 0
+
+
+def test_compress_archive_all_levels():
+    for level in ("light", "standard", "aggressive"):
+        with tempfile.TemporaryDirectory() as d:
+            inp = Path(d) / "input.zip"
+            out = Path(d) / "output.zip"
+            inp.write_bytes(_make_zip())
+            result = compress_archive(inp, out, level=level)
+            assert result.exists(), f"Niveau {level} n'a pas produit de fichier"
+
+
+def test_compress_archive_missing_file_raises():
+    with tempfile.TemporaryDirectory() as d:
+        with pytest.raises(Exception):
+            compress_archive(Path(d) / "missing.zip", Path(d) / "out.zip")
