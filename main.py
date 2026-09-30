@@ -166,7 +166,8 @@ def audit_log(request: Request, action: str, **kwargs):
     if not _ON_SAP:
         return
     import json
-    raw_ip = request.headers.get("X-Forwarded-For", "").split(",")[-1].strip() or (
+    # XFF[0] = IP cliente sur SAP BTP CF (gorouter prepend, ne pas utiliser [-1] qui est l'IP du proxy interne SAP)
+    raw_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (
         request.client.host if request.client else "unknown"
     )
     ip_hash = hashlib.sha256(raw_ip.encode()).hexdigest()[:16]
@@ -187,7 +188,8 @@ _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/", "
 async def rate_limit_middleware(request: Request, call_next):
     global _RATE_LAST_PURGE
     if _ON_PROD and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
-        ip = request.headers.get("X-Forwarded-For", "").split(",")[-1].strip() or (request.client.host if request.client else "unknown")
+        # XFF[0] = IP cliente sur SAP BTP CF (gorouter prepend, ne pas utiliser [-1] qui est l'IP du proxy interne SAP)
+        ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
         now = time.time()
         bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
         if len(bucket) >= _RATE_LIMIT:
