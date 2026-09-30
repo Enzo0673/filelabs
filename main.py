@@ -145,8 +145,38 @@ def _cleanup_outputs():
 app = FastAPI(title="FileLabs", version="1.0.0")
 app.add_middleware(GZipMiddleware, minimum_size=1000)  # compresse CSS/JS/HTML en transit
 
-# Rate limiting — actif uniquement sur la version en ligne (Render injecte la var RENDER)
-_ON_RENDER = os.environ.get("RENDER") is not None  # True = on est en production sur Render
+# Détection environnement : SAP BTP injecte SAP_BTP=true, Render injecte RENDER
+_ON_SAP = os.environ.get("SAP_BTP") is not None
+_ON_RENDER = os.environ.get("RENDER") is not None
+_ON_PROD = _ON_SAP or _ON_RENDER
+
+# ── Audit log SAP ──────────────────────────────────────────────────────────────
+# Sur BTP, SAP Application Logging Service expose les logs stdout au format JSON.
+# On log vers stdout — SAP les collecte automatiquement.
+_audit_logger = logging.getLogger("filelabs.audit")
+_audit_logger.setLevel(logging.INFO)
+if not _audit_logger.handlers:
+    _h = logging.StreamHandler()
+    _h.setFormatter(logging.Formatter('%(message)s'))
+    _audit_logger.addHandler(_h)
+    _audit_logger.propagate = False
+
+def audit_log(request: Request, action: str, **kwargs):
+    """Log structuré GDPR-safe : IP hashée, pas de nom de fichier."""
+    if not _ON_SAP:
+        return
+    import json
+    raw_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (
+        request.client.host if request.client else "unknown"
+    )
+    ip_hash = hashlib.sha256(raw_ip.encode()).hexdigest()[:16]
+    entry = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "action": action,
+        "ip_hash": ip_hash,
+        **kwargs,
+    }
+    _audit_logger.info(json.dumps(entry, ensure_ascii=False))
 _rate_buckets: dict = {}  # {ip: [timestamp, ...]}
 _RATE_LIMIT = 20          # requêtes max
 _RATE_WINDOW = 60         # par fenêtre de 60s
@@ -156,7 +186,7 @@ _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/", "
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     global _RATE_LAST_PURGE
-    if _ON_RENDER and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
+    if _ON_PROD and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
         ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
         now = time.time()
         bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
@@ -190,7 +220,7 @@ async def security_headers_middleware(request: Request, call_next):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
 
-    if _ON_RENDER:
+    if _ON_PROD:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         # CDN origins pour pdf-lib, fflate, ffmpeg.wasm, pdfjs-dist
         cdn_origins = (
@@ -226,8 +256,12 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 _LOCAL_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
-_RENDER_ORIGIN = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
-_ALLOWED_ORIGINS = _LOCAL_ORIGINS + ([_RENDER_ORIGIN] if _RENDER_ORIGIN else [])
+_PROD_ORIGIN = (
+    os.environ.get("SAP_APP_URL") or          # BTP : ex. https://filelabs.cfapps.eu10.hana.ondemand.com
+    os.environ.get("RENDER_EXTERNAL_URL") or  # Render (fallback)
+    ""
+).rstrip("/")
+_ALLOWED_ORIGINS = _LOCAL_ORIGINS + ([_PROD_ORIGIN] if _PROD_ORIGIN else [])
 
 app.add_middleware(
     CORSMiddleware,
@@ -459,6 +493,7 @@ async def root():
 
 @app.post("/compress")
 async def compress(
+    request: Request,
     file: UploadFile = File(...),
     level: str = Form("standard"),        # light | standard | aggressive
     job_id: str = Form(None),             # ID client pour SSE progression vidéo
@@ -481,6 +516,7 @@ async def compress(
     # Validation des paramètres
     if level not in {"light", "standard", "aggressive"}:
         raise HTTPException(status_code=400, detail="Niveau de compression invalide")
+    _t0 = time.time()
     if vid_codec not in _VALID_CODECS:
         raise HTTPException(status_code=400, detail="Codec vidéo invalide")
     if vid_preset not in _VALID_PRESETS:
@@ -568,6 +604,13 @@ async def compress(
         safe_stem = re.sub(r'[^\w\-]', '_', Path(file.filename).stem)[:64]
         output_filename = safe_stem + "_compressed" + output_path.suffix
 
+        audit_log(request, "compress",
+                  tool=f"compress-{file_type}",
+                  file_type=file_type,
+                  file_size_kb=original_size // 1024,
+                  gain_pct=gain_pct,
+                  duration_ms=round((time.time() - _t0) * 1000))
+
         return {
             "success": True,
             "original_size": original_size,
@@ -588,7 +631,7 @@ async def compress(
             with _video_progress_lock:
                 _video_progress.pop(progress_key, None)
 @app.get("/download/{uid}")
-async def download(uid: str):
+async def download(uid: str, request: Request):
     _validate_uid(uid)
     matches = list(OUTPUT_DIR.glob(f"{uid}_output*"))
     if not matches:
@@ -602,6 +645,22 @@ async def download(uid: str):
     mime_type, _ = mimetypes.guess_type(str(output_path))
     if not mime_type:
         mime_type = "application/octet-stream"
+
+    # Sur BTP : lire en mémoire, supprimer le fichier, streamer — zéro stockage résiduel
+    if _ON_SAP:
+        data = output_path.read_bytes()
+        output_path.unlink(missing_ok=True)
+        audit_log(request, "download", uid=uid, file_size_kb=len(data) // 1024)
+        from fastapi.responses import Response
+        return Response(
+            content=data,
+            media_type=mime_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{output_path.name}"',
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
     return FileResponse(
         path=output_path,
         filename=output_path.name,

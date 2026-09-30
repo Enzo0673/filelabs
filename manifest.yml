@@ -1,0 +1,16 @@
+---
+applications:
+  - name: filelabs-sap
+    memory: 1G
+    disk_quota: 2G
+    instances: 1
+    buildpacks:
+      - python_buildpack
+    command: gunicorn main:app -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 300
+    health-check-type: http
+    health-check-http-endpoint: /health
+    env:
+      SAP_BTP: "true"
+      # SAP_APP_URL: https://filelabs-sap.cfapps.<region>.hana.ondemand.com
+      # Injecter via 'cf set-env filelabs-sap SAP_APP_URL <url>'
+      PYTHONUNBUFFERED: "1"
