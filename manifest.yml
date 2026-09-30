@@ -6,7 +6,7 @@ applications:
     instances: 1
     buildpacks:
       - python_buildpack
-    command: bash scripts/fetch_ffmpeg.sh && gunicorn main:app -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 300
+    command: bash scripts/fetch_ffmpeg.sh && gunicorn main:app -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 300 --forwarded-allow-ips='*'
     health-check-type: http
     health-check-http-endpoint: /health
     env:
