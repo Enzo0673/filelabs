@@ -646,19 +646,16 @@ async def download(uid: str, request: Request):
     if not mime_type:
         mime_type = "application/octet-stream"
 
-    # Sur BTP : lire en mémoire, supprimer le fichier, streamer — zéro stockage résiduel
+    # Sur BTP : streamer puis supprimer en background — pas de read_bytes() (OOM risque sur gros fichiers)
     if _ON_SAP:
-        data = output_path.read_bytes()
-        output_path.unlink(missing_ok=True)
-        audit_log(request, "download", uid=uid, file_size_kb=len(data) // 1024)
-        from fastapi.responses import Response
-        return Response(
-            content=data,
+        from starlette.background import BackgroundTask
+        audit_log(request, "download", uid=uid, file_size_kb=output_path.stat().st_size // 1024)
+        return FileResponse(
+            path=output_path,
+            filename=output_path.name,
             media_type=mime_type,
-            headers={
-                "Content-Disposition": f'attachment; filename="{output_path.name}"',
-                "X-Content-Type-Options": "nosniff",
-            },
+            headers={"X-Content-Type-Options": "nosniff"},
+            background=BackgroundTask(output_path.unlink, missing_ok=True),
         )
 
     return FileResponse(
