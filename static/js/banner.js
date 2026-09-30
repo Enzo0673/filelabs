@@ -16,7 +16,15 @@
 
   document.body.insertBefore(banner, document.body.firstChild);
   requestAnimationFrame(() => {
-    document.body.style.paddingTop = banner.offsetHeight + 'px';
+    const h = banner.offsetHeight;
+    // Sur les pages outils, le header est fixed à top:0 — le décaler sous le bandeau
+    const header = document.querySelector('.header');
+    if (header) {
+      header.style.top = h + 'px';
+      document.body.style.paddingTop = (h + 60) + 'px';
+    } else {
+      document.body.style.paddingTop = h + 'px';
+    }
   });
 
   // ── Adapter le footer des pages outils ──
