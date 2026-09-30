@@ -166,7 +166,7 @@ def audit_log(request: Request, action: str, **kwargs):
     if not _ON_SAP:
         return
     import json
-    raw_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (
+    raw_ip = request.headers.get("X-Forwarded-For", "").split(",")[-1].strip() or (
         request.client.host if request.client else "unknown"
     )
     ip_hash = hashlib.sha256(raw_ip.encode()).hexdigest()[:16]
@@ -187,7 +187,7 @@ _PROCESSING_PATHS = ("/compress", "/pdf/", "/image/", "/video/", "/download/", "
 async def rate_limit_middleware(request: Request, call_next):
     global _RATE_LAST_PURGE
     if _ON_PROD and any(request.url.path.startswith(p) for p in _PROCESSING_PATHS):
-        ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        ip = request.headers.get("X-Forwarded-For", "").split(",")[-1].strip() or (request.client.host if request.client else "unknown")
         now = time.time()
         bucket = [t for t in _rate_buckets.get(ip, []) if now - t < _RATE_WINDOW]
         if len(bucket) >= _RATE_LIMIT:
@@ -645,6 +645,9 @@ async def download(uid: str, request: Request):
     mime_type, _ = mimetypes.guess_type(str(output_path))
     if not mime_type:
         mime_type = "application/octet-stream"
+    # Nom de téléchargement safe : ext assainie (jamais du nom utilisateur brut)
+    safe_ext = re.sub(r'[^A-Za-z0-9.]', '', output_path.suffix)[:10]
+    safe_dl_name = f"filelabs_output{safe_ext}"
 
     # Sur BTP : streamer puis supprimer en background — pas de read_bytes() (OOM risque sur gros fichiers)
     if _ON_SAP:
@@ -652,7 +655,7 @@ async def download(uid: str, request: Request):
         audit_log(request, "download", uid=uid, file_size_kb=output_path.stat().st_size // 1024)
         return FileResponse(
             path=output_path,
-            filename=output_path.name,
+            filename=safe_dl_name,
             media_type=mime_type,
             headers={"X-Content-Type-Options": "nosniff"},
             background=BackgroundTask(output_path.unlink, missing_ok=True),
@@ -660,7 +663,7 @@ async def download(uid: str, request: Request):
 
     return FileResponse(
         path=output_path,
-        filename=output_path.name,
+        filename=safe_dl_name,
         media_type=mime_type,
         headers={"X-Content-Type-Options": "nosniff"},
     )
