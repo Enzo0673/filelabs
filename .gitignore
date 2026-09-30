@@ -57,3 +57,7 @@ docs/superpowers/
 
 # Fichiers bin non-binaires
 bin/LIRE_MOI.txt
+
+# Config déploiement interne
+manifest.yml
+scripts/fetch_ffmpeg.sh

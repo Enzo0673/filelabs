@@ -145,14 +145,13 @@ def _cleanup_outputs():
 app = FastAPI(title="FileLabs", version="1.0.0")
 app.add_middleware(GZipMiddleware, minimum_size=1000)  # compresse CSS/JS/HTML en transit
 
-# Détection environnement : SAP BTP injecte SAP_BTP=true, Render injecte RENDER
-_ON_SAP = os.environ.get("SAP_BTP") is not None
+# Détection environnement : CLOUD_DEPLOY=true active audit log + suppression immédiate, Render injecte RENDER
+_ON_CLOUD = os.environ.get("CLOUD_DEPLOY") is not None
 _ON_RENDER = os.environ.get("RENDER") is not None
-_ON_PROD = _ON_SAP or _ON_RENDER
+_ON_PROD = _ON_CLOUD or _ON_RENDER
 
-# ── Audit log SAP ──────────────────────────────────────────────────────────────
-# Sur BTP, SAP Application Logging Service expose les logs stdout au format JSON.
-# On log vers stdout — SAP les collecte automatiquement.
+# ── Audit log ──────────────────────────────────────────────────────────────────
+# En production, logs structurés JSON vers stdout (collectés par le service de logging de la plateforme).
 _audit_logger = logging.getLogger("filelabs.audit")
 _audit_logger.setLevel(logging.INFO)
 if not _audit_logger.handlers:
@@ -163,7 +162,7 @@ if not _audit_logger.handlers:
 
 def audit_log(request: Request, action: str, **kwargs):
     """Log structuré GDPR-safe : IP hashée, pas de nom de fichier."""
-    if not _ON_SAP:
+    if not _ON_CLOUD:
         return
     import json
     # uvicorn --forwarded-allow-ips='*' résout request.client.host via XFF — pas de parsing manuel
@@ -261,7 +260,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 
 _LOCAL_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
 _PROD_ORIGIN = (
-    os.environ.get("SAP_APP_URL") or          # BTP : ex. https://filelabs.cfapps.eu10.hana.ondemand.com
+    os.environ.get("APP_URL") or               # Cloud : URL publique de l'app
     os.environ.get("RENDER_EXTERNAL_URL") or  # Render (fallback)
     ""
 ).rstrip("/")
@@ -653,8 +652,8 @@ async def download(uid: str, request: Request):
     safe_ext = re.sub(r'[^A-Za-z0-9.]', '', output_path.suffix)[:10]
     safe_dl_name = f"filelabs_output{safe_ext}"
 
-    # Sur BTP : streamer puis supprimer en background — pas de read_bytes() (OOM risque sur gros fichiers)
-    if _ON_SAP:
+    # En prod : streamer puis supprimer en background — pas de read_bytes() (OOM risque sur gros fichiers)
+    if _ON_CLOUD:
         from starlette.background import BackgroundTask
         audit_log(request, "download", uid=uid, file_size_kb=output_path.stat().st_size // 1024)
         return FileResponse(
