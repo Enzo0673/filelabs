@@ -29,8 +29,6 @@
 
   // ── Adapter le footer des pages outils ──
   document.querySelectorAll('.footer').forEach(f => {
-    if (f.textContent.includes('100% local') || f.textContent.includes('ne quittent jamais')) {
-      f.textContent = 'Fichiers supprimés automatiquement après 1h — aucune conservation longue durée';
-    }
+    f.textContent = 'Fichiers supprimés automatiquement après 1h — aucune conservation longue durée';
   });
 })();

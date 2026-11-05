@@ -18,51 +18,50 @@
     <main class="main" style="max-width:640px">
       <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem">Confidentialité</h1>
 
-      <!-- Version en ligne -->
-      <div id="privacy-online" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:0.9rem;color:#78350f;line-height:1.6">
-        <strong>⚠️ Vous utilisez la version en ligne.</strong><br>
-        Dans cette version, vos fichiers transitent par notre serveur hébergé sur Render.com, puis sont supprimés automatiquement. Pour un traitement 100% privé, <a href="https://github.com/Enzo0673/filelabs/releases/latest" target="_blank" rel="noopener" style="color:#92400e;font-weight:600">téléchargez l'application locale</a>.
+      <!-- Bannière mode local (masquée par défaut, affichée en local) -->
+      <div id="privacy-local-banner" style="display:none;background:#d1fae5;border:1px solid #34d399;border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:0.9rem;color:#065f46;line-height:1.6">
+        <strong>✅ Vous utilisez la version locale.</strong><br>
+        Vos fichiers sont traités directement sur votre machine (127.0.0.1) et ne transitent jamais par internet.
       </div>
 
       <div style="background:var(--surface);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px;font-size:0.95rem;line-height:1.7;color:var(--text-secondary)">
 
         <section>
-          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px" id="privacy-title-files">Vos fichiers restent sur votre machine</h2>
-          <p id="privacy-body-files">FileLabs fonctionne entièrement en local. Lorsque vous traitez un fichier, celui-ci est envoyé uniquement à un serveur <strong style="color:var(--text-primary)">qui tourne sur votre propre ordinateur</strong> (127.0.0.1). Il ne transite jamais par internet, ni par nos serveurs, ni par des services tiers.</p>
-        </section>
-
-        <section>
-          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Aucune collecte de données</h2>
-          <p>Nous ne collectons aucune donnée personnelle. Il n'y a ni cookies de tracking, ni analytics, ni publicité. Aucun identifiant utilisateur n'est créé ou stocké.</p>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px" id="privacy-title-files">Traitement sur nos serveurs</h2>
+          <p id="privacy-body-files">Dans la version en ligne, vos fichiers sont envoyés sur notre serveur pour y être traités. Ils ne sont <strong style="color:var(--text-primary)">jamais partagés avec des tiers</strong> et sont supprimés automatiquement après traitement. Pour un traitement 100% privé, <a href="https://github.com/Enzo0673/filelabs/releases/latest" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600">téléchargez la version locale</a>.</p>
         </section>
 
         <section>
           <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Suppression automatique des fichiers</h2>
-          <p id="privacy-body-delete">Les fichiers traités sont stockés temporairement dans un dossier local (<code style="font-family:monospace;background:var(--surface-2,#f1f5f9);padding:2px 6px;border-radius:4px">outputs/</code>) sur votre machine, puis supprimés automatiquement au bout d'une heure. Vous pouvez aussi les supprimer manuellement via le bouton "Nouveau" après chaque traitement.</p>
+          <p id="privacy-body-delete">Les fichiers traités sont supprimés automatiquement de notre serveur <strong style="color:var(--text-primary)">après 1 heure</strong>. Vous pouvez aussi forcer la suppression immédiate via le bouton "Nouveau" après chaque traitement.</p>
+        </section>
+
+        <section>
+          <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Aucune collecte de données personnelles</h2>
+          <p>Nous ne collectons aucune donnée personnelle. Aucun cookie de tracking, aucun identifiant utilisateur. L'outil d'analytics <a href="https://umami.is" target="_blank" rel="noopener" style="color:var(--primary)">Umami</a> collecte uniquement des statistiques de navigation anonymes (pages vues, pays).</p>
         </section>
 
         <section>
           <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Bibliothèques utilisées</h2>
-          <p>Le traitement des fichiers utilise uniquement des bibliothèques open source (Pillow, pikepdf, FFmpeg, pdf.js) qui s'exécutent localement. Ces bibliothèques ne transmettent aucune donnée à des serveurs externes.</p>
+          <p>Le traitement des fichiers utilise uniquement des bibliothèques open source (Pillow, pikepdf, FFmpeg, pdf.js). Ces bibliothèques ne transmettent aucune donnée à des services externes.</p>
         </section>
 
         <section>
           <h2 style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Code source</h2>
-          <p>FileLabs est open source. Vous pouvez inspecter l'intégralité du code sur <a href="https://github.com/Enzo0673/filelabs" target="_blank" rel="noopener" style="color:var(--primary)">GitHub</a>.</p>
+          <p>FileLabs est entièrement open source. Vous pouvez inspecter l'intégralité du code sur <a href="https://github.com/Enzo0673/filelabs" target="_blank" rel="noopener" style="color:var(--primary)">GitHub</a>.</p>
         </section>
 
       </div>
     </main>
-    <footer class="footer" id="privacy-footer">100% local &mdash; vos fichiers ne quittent jamais votre machine</footer>
+    <footer class="footer">Fichiers supprimés automatiquement après traitement</footer>
   </div>
   <script>
     const isLocal = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
-    if (!isLocal) {
-      document.getElementById('privacy-online').style.display = 'block';
-      document.getElementById('privacy-title-files').textContent = 'Traitement sur nos serveurs';
-      document.getElementById('privacy-body-files').textContent = 'Dans la version en ligne, vos fichiers sont envoyés sur notre serveur hébergé sur Render.com pour y être traités. Ils ne sont jamais partagés avec des tiers et sont supprimés automatiquement.';
-      document.getElementById('privacy-body-delete').textContent = 'Les fichiers traités sont supprimés automatiquement de notre serveur après 1 heure. Vous pouvez aussi forcer la suppression immédiate via le bouton "Nouveau" après chaque traitement.';
-      document.getElementById('privacy-footer').textContent = 'Fichiers supprimés automatiquement après 1h — aucune conservation';
+    if (isLocal) {
+      document.getElementById('privacy-local-banner').style.display = 'block';
+      document.getElementById('privacy-title-files').textContent = 'Vos fichiers restent sur votre machine';
+      document.getElementById('privacy-body-files').textContent = 'En mode local, vos fichiers sont envoyés uniquement au serveur qui tourne sur votre propre ordinateur (127.0.0.1). Ils ne transitent jamais par internet.';
+      document.getElementById('privacy-body-delete').textContent = 'Les fichiers traités sont stockés temporairement dans le dossier outputs/ sur votre machine, puis supprimés automatiquement après 1 heure.';
     }
   </script>
   <script src="/static/js/banner.js"></script>
